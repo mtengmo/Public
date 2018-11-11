@@ -1,0 +1,25 @@
+
+2018	Året i (D1)
+
+
+Nyår	=DATE(D1+1;1;1)
+Trettondagen	=DATE(D1;12;25)+12
+Långfredagen	=FLOOR(D1&"-05-"&DAY(MINUTE(D1/38)/2+56);7)-36
+Påskafton	=FLOOR(D1&"-05-"&DAY(MINUTE(D1/38)/2+56);7)-35
+Annandag påsk	=FLOOR(D1&"-05-"&DAY(MINUTE(D1/38)/2+56);7)-33
+Första maj	=DATE(D1;5;1)
+Kristinhimmelsfärd	=FLOOR(D1&"-05-"&DAY(MINUTE(D1/38)/2+56);7)-34+39
+Nationaldagen	=DATE(D1;6;6)
+Midsommarafton	=DATE(D1;6;7)-WEEKDAY(DATE(D1;6;7)) + IF(DAY(DATE(D1;6;7)+3*7-WEEKDAY(DATE(D1;6;7)))>26;2;3)*7-1
+Julafton	=DATE(D1;12;24)
+Juldagen	=DATE(D1;12;25)
+Annandag jul	=DATE(D1;12;26)
+Nyårsafton	=DATE(D1;12;31)
+Nästa skärtorsdag	=FLOOR((D1+1)&"-05-"&DAY(MINUTE((D1+1)/38)/2+56);7)-37
+Nästa långfredag	=FLOOR((D1+1)&"-05-"&DAY(MINUTE((D1+1)/38)/2+56);7)-36
+Nästa påskafton	=FLOOR((D1+1)&"-05-"&DAY(MINUTE((D1+1)/38)/2+56);7)-35
+Annadag påsk	=FLOOR((D1+1)&"-05-"&DAY(MINUTE((D1+1)/38)/2+56);7)-33
+	 
+	 
+
+
