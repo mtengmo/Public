@@ -1,0 +1,15 @@
+# Toheter with holidays.txt it´s possible to calculate number of workdays per month in Excel. 
+# Create a named box in Excel named "holidays" and from holidays.txt. 
+# This forumla probably depends on regional settings (Swedish)
+
+=NETWORKDAYS(I1;EOMONTH(I1;0);Holidays)
+
+I1 = =DATE(Year;4;1)
+
+# Year = named field for todays year, same as in holidays.txt
+# 4 = April
+# 1 day
+# Format I1 with custom to YYYY-MMM = 2018-Apr
+
+
+
