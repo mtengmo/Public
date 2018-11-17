@@ -1,3 +1,15 @@
+try
+{
+    Get-MsolDomain -ErrorAction Stop > $null
+}
+catch 
+{
+    if ($cred -eq $null) {$cred = Get-Credential $O365Adminuser}
+    Write-Output "Connecting to Office 365..."
+    Connect-MsolService -Credential $cred
+}
+
+
 $phoneappnotificationcount = 0
 # Setting the counters
 $PhoneAppOTPcount = 0
@@ -11,7 +23,7 @@ $MFApossible = 0
 $ADMobile_Without_MFA = 0
 
 # Getting all users
-$allusers = Get-MsolUser -all -Synchronized | where {$_.isLicensed -eq $true}
+$allusers = Get-MsolUser -all  | where {$_.isLicensed -eq $true}
 # Going through every user
 foreach ($induser in $allusers) {
     # Resetting the variables
