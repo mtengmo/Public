@@ -1,9 +1,7 @@
-try
-{
+try {
     Get-MsolDomain -ErrorAction Stop > $null
 }
-catch 
-{
+catch {
     if ($cred -eq $null) {$cred = Get-Credential $O365Adminuser}
     Write-Output "Connecting to Office 365..."
     Connect-MsolService -Credential $cred
@@ -77,9 +75,4 @@ write-host "Amount of users with MFA Enforced (Enabled and enrolled): $MFAEnforc
 write-host "Amount of users with MFA method enrolled but not enabled by admin: $MFApossible" -ForegroundColor Green
 write-host "Amount of users with AD Mobile Without MFA: $ADMobile_Without_MFA" -ForegroundColor Yellow
 Write-Host "Hitrate: $Hitrate%" 
-
-
-
-
-
 
