@@ -1,13 +1,3 @@
-try {
-    Get-MsolDomain -ErrorAction Stop > $null
-}
-catch {
-    if ($cred -eq $null) {$cred = Get-Credential $O365Adminuser}
-    Write-Output "Connecting to Office 365..."
-    Connect-MsolService -Credential $cred
-}
-
-
 $phoneappnotificationcount = 0
 # Setting the counters
 $PhoneAppOTPcount = 0
@@ -20,8 +10,19 @@ $MFADisabled = 0
 $MFApossible = 0
 $ADMobile_Without_MFA = 0
 
+#Install-module MSOnline
+
+try {
+    Get-MsolDomain -ErrorAction Stop > $null
+}
+catch {
+    if ($cred -eq $null) {$cred = Get-Credential $O365Adminuser}
+    Write-Output "Connecting to Office 365..."
+    Connect-MsolService -Credential $cred
+}
+
 # Getting all users
-$allusers = Get-MsolUser -all  | where {$_.isLicensed -eq $true}
+$allusers = Get-MsolUser -all -Synchronized | where {$_.isLicensed -eq $true}
 # Going through every user
 foreach ($induser in $allusers) {
     # Resetting the variables
@@ -56,10 +57,12 @@ foreach ($induser in $allusers) {
     #mobile
     if (($induser.mobilephone) -and (!$strongauthmethods)) {$ADMobile_Without_MFA++}
 
+    #MFApossible
+    if (($strongauthmethods) -and (!$StrongAuthenticationRequirements)) {$MFApossible++}
 
 }
 
-$MFApossible = $MFADisabled - $nomfamethod
+#$MFApossible = $MFADisabled - $nomfamethod
 $Hitrate = [math]::Round((($MFAEnforced + $MFAEnabled) / $allusers.count * 100))
 
 # Now printing out the result
@@ -75,4 +78,9 @@ write-host "Amount of users with MFA Enforced (Enabled and enrolled): $MFAEnforc
 write-host "Amount of users with MFA method enrolled but not enabled by admin: $MFApossible" -ForegroundColor Green
 write-host "Amount of users with AD Mobile Without MFA: $ADMobile_Without_MFA" -ForegroundColor Yellow
 Write-Host "Hitrate: $Hitrate%" 
+
+
+
+
+
 
