@@ -55,7 +55,7 @@ foreach ($induser in $allusers) {
     elseif ($StrongAuthenticationRequirements.state -eq 'Enabled') {$MFAEnabled++ }
     
     #mobile
-    if (($induser.mobilephone) -and (!$strongauthmethods)) {$ADMobile_Without_MFA++}
+    if (($induser.mobilephone) -and (!$StrongAuthenticationRequirements)) {$ADMobile_Without_MFA++}
 
     #MFApossible
     if (($strongauthmethods) -and (!$StrongAuthenticationRequirements)) {$MFApossible++}
