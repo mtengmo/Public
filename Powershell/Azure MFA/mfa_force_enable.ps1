@@ -1,6 +1,6 @@
 #https://blogs.technet.microsoft.com/office365/2015/08/25/powershell-enableenforce-multifactor-authentication-for-all-bulk-users-in-office-365/
 #https://justidm.wordpress.com/2018/09/14/bulk-pre-register-mfa-for-users-without-enable-mfa-on-the-account/comment-page-1/
-#$upn = "mteo5@tobii.com"
+#$upn = "mteo5@xxxx.com"
 	
 $method1 = New-Object -TypeName Microsoft.Online.Administration.StrongAuthenticationMethod
 $method1.IsDefault = $true
