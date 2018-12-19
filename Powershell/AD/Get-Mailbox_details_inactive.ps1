@@ -30,7 +30,8 @@ $Allusers = (get-user -ResultSize unlimited |
             HiddenFromAddressListsEnabled = $HiddenFromAddressListsEnabled
             IsInactiveMailbox             = $IsInactiveMailbox
             LastLogonTime                 = $LastLogonTime
-  
+            JunkmailEnabled               = $JunkmailEnabled
+            JunkmailTrustedListsOnly      = $JunkmailTrustedListsOnly
 
 
         }
