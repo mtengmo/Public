@@ -37,7 +37,6 @@
   Author:         Luca Sturlese
   Creation Date:  16.07.2016
   Purpose/Change: Initial script development
-  Version 1.1 Added description with date when moved and disabled. 
 .EXAMPLE
   Execution of script using default parameters. Default execution performs reporting of inactive AD computers only, not disabling or deleting any objects.
   By default the report is saved in C:\.
@@ -53,11 +52,11 @@
 #---------------------------------------------------------[Script Parameters]------------------------------------------------------
 
 Param (
-  [Parameter(Mandatory = $false)][string][ValidateSet('All', 'OnlyInactiveComputers', 'OnlyNeverLoggedOn')]$SearchScope = 'All',
-  [Parameter(Mandatory = $false)][int]$DaysInactive = 90,
-  [Parameter(Mandatory = $false)][string]$ReportFilePath = 'C:\Script\Data\Inactivecomputers.csv',
-  [Parameter(Mandatory = $false)][switch]$DisableObjects = $false,
-  [Parameter(Mandatory = $false)][switch]$DeleteObjects = $false
+    [Parameter(Mandatory = $false)][string][ValidateSet('All', 'OnlyInactiveComputers', 'OnlyNeverLoggedOn')]$SearchScope = 'All',
+    [Parameter(Mandatory = $false)][int]$DaysInactive = 180,
+    [Parameter(Mandatory = $false)][string]$ReportFilePath = 'C:\Script\Data\Inactivecomputers.csv',
+    [Parameter(Mandatory = $false)][switch]$DisableObjects = $true,
+    [Parameter(Mandatory = $false)][switch]$DeleteObjects = $false
     
 )
 
@@ -75,146 +74,146 @@ Import-Module ActiveDirectory
 #----------------------------------------------------------[Declarations]----------------------------------------------------------
 
 #Set Inactive Date:
-$InactiveDate = (Get-Date).Adddays(-($DaysInactive))
+$InactiveDate = (Get-Date).Adddays( - ($DaysInactive))
 
 #-----------------------------------------------------------[Functions]------------------------------------------------------------
 
 Function Find-Objects {
-  Param ()
+    Param ()
 
-  Begin {
-    Write-Output "Finding inactive computer objects based on search scope specified [$SearchScope]..."
-  }
-
-  Process {
-    Try {
-      Switch ($SearchScope) {
-        'All' {
-          $global:Results = Get-ADComputer -Filter { (LastLogonDate -lt $InactiveDate -or LastLogonDate -notlike "*") -and (Enabled -eq $true) } -Properties LastLogonDate | Select-Object Name, LastLogonDate, DistinguishedName
-        }
-
-        'OnlyInactiveComputers' {
-          $global:Results = Get-ADComputer -Filter { LastLogonDate -lt $InactiveDate -and Enabled -eq $true } -Properties LastLogonDate | Select-Object Name, LastLogonDate, DistinguishedName
-        }
-
-        'OnlyNeverLoggedOn' {
-          $global:Results = Get-ADComputer -Filter { LastLogonDate -notlike "*" -and Enabled -eq $true } -Properties LastLogonDate | Select-Object Name, LastLogonDate, DistinguishedName
-        }
-
-        Default {
-          Write-Output -BackgroundColor Red "Error: An unknown error occcurred. Can't determine search scope. Exiting."
-          Break
-        }
-      }
+    Begin {
+        Write-Output "Finding inactive computer objects based on search scope specified [$SearchScope]..."
     }
 
-    Catch {
-      Write-Output -BackgroundColor Red "Error: $($_.Exception)"
-      Break
-    }
+    Process {
+        Try {
+            Switch ($SearchScope) {
+                'All' {
+                    $global:Results = Get-ADComputer -Filter { (LastLogonDate -lt $InactiveDate -or LastLogonDate -notlike "*") -and (Enabled -eq $true) } -Properties LastLogonDate | Select-Object Name, LastLogonDate, DistinguishedName
+                }
 
-    End {
-      If ($?) {
-        Write-Output 'Completed Successfully.'
-        Write-Output ' '
-      }
+                'OnlyInactiveComputers' {
+                    $global:Results = Get-ADComputer -Filter { LastLogonDate -lt $InactiveDate -and Enabled -eq $true } -Properties LastLogonDate | Select-Object Name, LastLogonDate, DistinguishedName
+                }
+
+                'OnlyNeverLoggedOn' {
+                    $global:Results = Get-ADComputer -Filter { LastLogonDate -notlike "*" -and Enabled -eq $true } -Properties LastLogonDate | Select-Object Name, LastLogonDate, DistinguishedName
+                }
+
+                Default {
+                    Write-Output -BackgroundColor Red "Error: An unknown error occcurred. Can't determine search scope. Exiting."
+                    Break
+                }
+            }
+        }
+
+        Catch {
+            Write-Output -BackgroundColor Red "Error: $($_.Exception)"
+            Break
+        }
+
+        End {
+            If ($?) {
+                Write-Output 'Completed Successfully.'
+                Write-Output ' '
+            }
+        }
     }
-  }
 }
 
 Function Create-Report {
-  Param ()
+    Param ()
 
-  Begin {
-    Write-Output "Creating report of inactive computers in specified path [$ReportFilePath]..."
-  }
-
-  Process {
-    Try {
-      #Check file path to ensure correct
-      If ($ReportFilePath -notlike '*.csv') {
-        $ReportFilePath = Join-Path -Path $ReportFilePath -ChildPath '\InactiveComputers.csv'
-      }
-      Write-Output "Inactive accounts to be disabled: $global:Results"
-
-      # Create CSV report
-      $global:Results | Export-Csv $ReportFilePath -NoTypeInformation -Delimiter ";" -Encoding UTF8
+    Begin {
+        Write-Output "Creating report of inactive computers in specified path [$ReportFilePath]..."
     }
 
-    Catch {
-      Write-Output -BackgroundColor Red "Error: $($_.Exception)"
-      Break
-    }
-  }
+    Process {
+        Try {
+            #Check file path to ensure correct
+            If ($ReportFilePath -notlike '*.csv') {
+                $ReportFilePath = Join-Path -Path $ReportFilePath -ChildPath '\InactiveComputers.csv'
+            }
+            Write-Output "Inactive accounts to be disabled: $global:Results"
 
-  End {
-    If ($?) {
-      Write-Output 'Completed Successfully.'
-      Write-Output ' '
+            # Create CSV report
+            $global:Results | Export-Csv $ReportFilePath -NoTypeInformation -Delimiter ";" -Encoding UTF8
+        }
+
+        Catch {
+            Write-Output -BackgroundColor Red "Error: $($_.Exception)"
+            Break
+        }
     }
-  }
+
+    End {
+        If ($?) {
+            Write-Output 'Completed Successfully.'
+            Write-Output ' '
+        }
+    }
 }
 
 Function Disable-Objects {
-  Param ()
+    Param ()
 
-  Begin {
-    Write-Output 'Disabling inactive computers...'
-  }
+    Begin {
+        Write-Output 'Disabling inactive computers...'
+    }
 
-  Process {
-    Try {
-      ForEach ($Item in $global:Results){
-        Write-Output "$($Item.Name) - Disabled and moved to $TargetOU"
-        $description = ((Get-adcomputer $Item.DistinguishedName -Properties description).description + "|disabled by script:" + $date)
-        Set-ADComputer -Identity $Item.DistinguishedName -Enabled $false -Description $description 
-        Move-ADObject -Identity $Item.DistinguishedName -TargetPath $TargetOU
+    Process {
+        Try {
+            ForEach ($Item in $global:Results) {
+                Write-Output "$($Item.Name) - Disabled and moved to $TargetOU"
+                $description = ((Get-adcomputer $Item.DistinguishedName -Properties description).description + "|disabled by script:" + $date)
+                Set-ADComputer -Identity $Item.DistinguishedName -Enabled $false -Description $description 
+                Move-ADObject -Identity $Item.DistinguishedName -TargetPath $TargetOU
          
         
-      }
+            }
+        }
+
+        Catch {
+            Write-Output "Error: $($_.Exception)" -BackgroundColor Red
+            Break
+        }
     }
 
-    Catch {
-      Write-Output "Error: $($_.Exception)" -BackgroundColor Red
-      Break
+    End {
+        If ($?) {
+            Write-Output 'Completed Successfully.'
+            Write-Output ' '
+        }
     }
-  }
-
-  End {
-    If ($?) {
-      Write-Output 'Completed Successfully.'
-      Write-Output ' '
-    }
-  }
 }
 
 Function Delete-Objects {
-  Param ()
+    Param ()
 
-  Begin {
-    Write-Output 'Deleting inactive computers...'
-  }
-
-  Process {
-    Try {
-      ForEach ($Item in $global:Results){
-        Remove-ADComputer -Identity $Item.DistinguishedName -Confirm:$false
-        Write-Output "$($Item.Name) - Deleted"
-      }
+    Begin {
+        Write-Output 'Deleting inactive computers...'
     }
 
-    Catch {
-      Write-Output -BackgroundColor Red "Error: $($_.Exception)"
-      Break
-    }
-  }
+    Process {
+        Try {
+            ForEach ($Item in $global:Results) {
+                Remove-ADComputer -Identity $Item.DistinguishedName -Confirm:$false
+                Write-Output "$($Item.Name) - Deleted"
+            }
+        }
 
-  End {
-    If ($?) {
-      Write-Output 'Completed Successfully.'
-      Write-Output ' '
+        Catch {
+            Write-Output -BackgroundColor Red "Error: $($_.Exception)"
+            Break
+        }
     }
-  }
+
+    End {
+        If ($?) {
+            Write-Output 'Completed Successfully.'
+            Write-Output ' '
+        }
+    }
 }
 
 #-----------------------------------------------------------[Execution]------------------------------------------------------------
@@ -224,10 +223,10 @@ Find-Objects
 Create-Report
 
 If ($DisableObjects) {
-  Write-Output "Running func Disable-Objects"
-  Disable-Objects
+    Write-Output "Running func Disable-Objects"
+    Disable-Objects
 }
 
 If ($DeleteObjects) {
-  Delete-Objects
+    Delete-Objects
 }
