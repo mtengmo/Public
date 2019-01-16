@@ -1,0 +1,1 @@
+Invoke-Command -ComputerName (Get-ADComputer -Filter 'operatingsystem -like "*Server 201*"' -Properties * | Select -ExpandProperty Name) -ScriptBlock {Get-SmbSession | Select *} | Select-Object PSComputername,Dialect,ClientComputerName,Clientusername
