@@ -89,15 +89,15 @@ Function Find-Objects {
         Try {
             Switch ($SearchScope) {
                 'All' {
-                    $global:Results = Get-ADComputer -Filter { (LastLogonDate -lt $InactiveDate -or LastLogonDate -notlike "*") -and (Enabled -eq $true) } -Properties LastLogonDate | Select-Object Name, LastLogonDate, DistinguishedName
+                    $global:Results = Get-ADComputer -Filter { (LastLogonDate -lt $InactiveDate -or LastLogonDate -notlike "*") -and (Enabled -eq $true) -and (name -ne 'azureadssoacc') } -Properties LastLogonDate | Select-Object Name, LastLogonDate, DistinguishedName
                 }
 
                 'OnlyInactiveComputers' {
-                    $global:Results = Get-ADComputer -Filter { LastLogonDate -lt $InactiveDate -and Enabled -eq $true } -Properties LastLogonDate | Select-Object Name, LastLogonDate, DistinguishedName
+                    $global:Results = Get-ADComputer -Filter { LastLogonDate -lt $InactiveDate -and Enabled -eq $true -and (name -ne 'azureadssoacc')} -Properties LastLogonDate | Select-Object Name, LastLogonDate, DistinguishedName
                 }
 
                 'OnlyNeverLoggedOn' {
-                    $global:Results = Get-ADComputer -Filter { LastLogonDate -notlike "*" -and Enabled -eq $true } -Properties LastLogonDate | Select-Object Name, LastLogonDate, DistinguishedName
+                    $global:Results = Get-ADComputer -Filter { LastLogonDate -notlike "*" -and Enabled -eq $true -and (name -ne 'azureadssoacc')} -Properties LastLogonDate | Select-Object Name, LastLogonDate, DistinguishedName
                 }
 
                 Default {
@@ -224,9 +224,9 @@ Create-Report
 
 If ($DisableObjects) {
     Write-Output "Running func Disable-Objects"
-    Disable-Objects
+    #Disable-Objects
 }
 
 If ($DeleteObjects) {
-    Delete-Objects
+    #Delete-Objects
 }
