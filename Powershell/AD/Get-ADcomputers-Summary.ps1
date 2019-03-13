@@ -33,13 +33,13 @@ Import-Module ActiveDirectory
 $DomainName = (Get-ADDomain).NetBIOSName  
  
 # How many days ago was the lastLogon attribute updated? 
-$days = 90 
+$days = 30 
 $lastLogonDate = (Get-Date).AddDays(-$days).ToFileTime() 
  
 # SMTP settings 
-$smtpServer = "mail.domain.com" 
-$smtpFrom = "report@domain.com" 
-$smtpTo = "ma@domain.com" 
+$smtpServer = "mail.tobii.com" 
+$smtpFrom = "report@tobii.com" 
+$smtpTo = "magnus.tengmo@tobii.com" 
 $messageSubject = "$DomainName Windows OS Counts - lastLogon within $days days" 
  
 # HTML settings 

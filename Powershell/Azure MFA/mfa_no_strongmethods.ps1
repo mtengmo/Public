@@ -1,11 +1,13 @@
-$file = "C:\temp\mfa_no_methods.csv"
+$file = "C:\temp\mfa_no_methods2.csv"
 
 # connect to Azure Active Directory
 Connect-MsolService
 
 # obtain users who did not have setup MFA
 $allusers = Get-MsolUser -all -Synchronized -EnabledFilter EnabledOnly | 
-    where {$_.isLicensed -eq $true} | Where-Object {[string]::IsNullOrEmpty($_.StrongAuthenticationMethods)}
+    where {$_.isLicensed -eq $true} 
+    
+#| Where-Object {[string]::IsNullOrEmpty($_.StrongAuthenticationMethods)}
 
 # export to csv
 $allusers | 
