@@ -17,9 +17,7 @@
   Creation Date:  2019-03-13
   Purpose/Change: Initial script development
 .EXAMPLE
-  Execution of script using default parameters. Default execution performs reporting of inactive AD computers only, not disabling or deleting any objects.
-  By default the report is saved in C:\.
-  .\Find-ADInactiveComputers.ps1
+.\mfa_force_enable.ps1 -file C:\temp\mfa_enable_20190313.csv
 #>
 
 #---------------------------------------------------------[Script Parameters]------------------------------------------------------
