@@ -1,0 +1,13 @@
+let top50 = SecurityEvent
+| where EventID == 4625 and AccountType == 'User'
+| extend Account_Name = extract(@'^(.*\\)?([^@]*)(@.*)?$', 2, tolower(Account))
+| summarize Attempts = count() by Account_Name
+| where Account_Name != ''
+| top 50 by Attempts 
+| summarize makelist(Account_Name);
+SecurityEvent
+| where EventID == 4625 and AccountType == 'User'
+| extend Name = extract(@'^(.*\\)?([^@]*)(@.*)?$', 2, tolower(Account))
+| extend Account_Name = iff(Name in (top50), Name, 'Other')
+| where Account_Name != ''
+| summarize Attempts = count() by Account_Name

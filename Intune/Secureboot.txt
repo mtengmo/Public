@@ -1,0 +1,4 @@
+# Troubleshooting Intune non-complaint secureboot
+# Download strings: https://docs.microsoft.com/en-us/sysinternals/downloads/strings
+# Search for Secureboot in logfiles: strings64.exe "c:\windows\logs\measuredboot\0000000051-0000000009.log" | findstr SecureBoot
+# https://docs.microsoft.com/en-us/previous-versions/windows/hardware/hck/jj923068(v=vs.85)

@@ -1,0 +1,13 @@
+SecurityEvent
+| where EventID in (4720, 4722, 4725, 4726, 4240, 4767)
+| order by TimeGenerated
+| extend EventType = case(
+ EventID == 4720, 'User account created',
+ EventID == 4722, 'User account enabled',
+ EventID == 4725, 'User account disabled',
+ EventID == 4726, 'User account deleted',
+ EventID == 4767, 'User account unlocked',
+ EventID == 4740, 'User account locked out',
+ strcat('Unkown Event ID', EventID))
+| project Time_Generated = TimeGenerated, Event_Type = EventType, Computer, Account, TargetAccount
+| limit 100
