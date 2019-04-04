@@ -1,0 +1,12 @@
+=DATE(YEAR(LastModified());MONTH(EOMONTH(LastModified();(DAY(LastModified())>15)+0));1)
+
+#https://www.techonthenet.com/excel/macros/last_modified.php
+# Alt+F11 - Insert\Module 
+Function LastModified() as Date
+   LastModified = ActiveWorkbook.BuiltinDocumentProperties("Last Save Time")
+End Function
+
+
+#Round date to last date of month (file modified):
+=DATE(YEAR(LastModified());MONTH(EOMONTH(LastModified();(DAY(LastModified())>15)+0));1)-1
+
