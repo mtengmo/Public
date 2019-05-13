@@ -22,7 +22,7 @@ catch {
 }
 
 # Getting all users
-$allusers = Get-MsolUser -all -Synchronized | where {$_.isLicensed -eq $true}
+$allusers = Get-MsolUser -all -Synchronized -EnabledFilter enabledonly | where {$_.isLicensed -eq $true}
 # Going through every user
 foreach ($induser in $allusers) {
     # Resetting the variables
@@ -35,6 +35,7 @@ foreach ($induser in $allusers) {
     $upn = $induser.userprincipalname
     # This check is if the user has even enrolled with MFA yet, otherwise we +1 to that counter.
     if (!$strongauthmethods) { $nomfamethod++ }
+    if ($strongauthmethods) { $mfamethod++ }
     # Going through all methods ...
     foreach ($method in $strongauthmethods) {
         # ... to find which is the default method.
@@ -64,6 +65,8 @@ foreach ($induser in $allusers) {
 
 #$MFApossible = $MFADisabled - $nomfamethod
 $Hitrate = [math]::Round((($MFAEnforced + $MFAEnabled) / $allusers.count * 100))
+$Hitratemethods = [math]::Round((($mfamethod) / $allusers.count * 100))
+$users = $allusers.count
 
 # Now printing out the result
 write-host "Amount of users using MFA App Notification: $phoneappnotificationcount" 
@@ -77,7 +80,11 @@ write-host "Amount of users using MFA Enabled (Admin enabled MFA but enduser hav
 write-host "Amount of users with MFA Enforced (Enabled and enrolled): $MFAEnforced" -ForegroundColor Green
 write-host "Amount of users with MFA method enrolled but not enabled by admin: $MFApossible" -ForegroundColor Green
 write-host "Amount of users with AD Mobile Without MFA: $ADMobile_Without_MFA" -ForegroundColor Yellow
-Write-Host "Hitrate: $Hitrate%" 
+write-host "Amount of users with MFA methods enrolled: $mfamethod of $users users!" -ForegroundColor Yellow
+
+Write-Host "Hitrate enabled + enforced: $Hitrate%" 
+Write-Host "Hitrate enrolled methods: $Hitratemethods%" 
+
 
 
 
