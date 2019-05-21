@@ -11,7 +11,7 @@
 #>
 
 Param(
-    [Parameter(Mandatory = $true)][String]$server,  #SQL Server instance "Server\instance"
+    [Parameter(Mandatory = $true)][String]$server, #SQL Server instance "Server\instance"
     [System.Management.Automation.PSCredential]$LoginPSCredential      
 
 )
@@ -31,7 +31,8 @@ $dskunderinstance = 'managementserver'
 
 if (Get-Module -Name SQLServer) {
     Write-Host "Module SQLServer exists"
-} else {
+}
+else {
     Write-Host "Module does not exist, installing module"
     #need to be admin
     Install-module SQLServer
@@ -86,9 +87,9 @@ function New-SQLDatabase {
     if ($UseDefaultFileLocations -eq $true) {
         #get the default file locations; if the master is in the default location we use that path as the default file will not be set
         $LocalDataDrive = if ($SQLServer.DefaultFile -eq [DBNULL]::value)
-        {$SQLServer.MasterDBPath}
+        { $SQLServer.MasterDBPath }
         else
-        {$SQLServer.DefaultFile}
+        { $SQLServer.DefaultFile }
         $LocalLogDrive = $SQLServer.DefaultLog
     }
     elseif ($UseDefaultFileLocations -eq $false -and ($NonDefaultFileLocation -eq $Null -or $NonDefaultLogLocation -eq $Null)) {
@@ -128,7 +129,7 @@ function New-SQLDatabase {
         $PrimaryFile.Size = ($PrimaryFileSize * 1024)
         $PrimaryFile.GrowthType = "KB"
         $PrimaryFile.Growth = ($PrimaryFileGrowth * 1024)
-        $PrimaryFile.MaxSize = ($PrimaryFileMaxSize * 1024)
+        $PrimaryFile.MaxSize = ($PrimaryFileMaxSize * 102400)
         $PrimaryFile.IsPrimaryFile = "true"
         #add the file to the filegroup
         $PrimaryFG.Files.Add($PrimaryFile)
@@ -261,7 +262,7 @@ if ($logins.name -eq $loginname) {
 }
 else {
     #Write-Host "Set SQL Login perfdb password" -ForegroundColor green 
-    if (-not $LoginPSCredential){
+    if (-not $LoginPSCredential) {
         $LoginPSCredential = Get-credential -UserName $loginname -Message "enter password"
     }
     Write-Host "Adding SQL Login: $loginname" -ForegroundColor green
