@@ -1,2 +1,8 @@
-SigninLogs |extend ClientAppUsed = iff(isempty(ClientAppUsed)==true,"Unknown" ,ClientAppUsed)  |extend isLegacyAuth = case(ClientAppUsed contains "Browser", "No", ClientAppUsed contains "Mobile Apps and Desktop clients", "No", ClientAppUsed contains "Exchange ActiveSync", "No", ClientAppUsed contains "Other clients", "Yes", "Unknown") |where isLegacyAuth=="Yes" | distinct Identity | sort by Identity 
-
+SigninLogs |extend ClientAppUsed = iff(isempty(ClientAppUsed)==true,"Unknown" ,ClientAppUsed) |extend isLegacyAuth = case
+(ClientAppUsed contains "Browser", "No", 
+ClientAppUsed contains "Mobile Apps and Desktop clients", "No",
+ ClientAppUsed contains "Exchange ActiveSync", "No", 
+ ClientAppUsed contains "Other clients", "Yes", "Unknown") 
+ |where isLegacyAuth=="Yes" 
+| where ResultType == "0" 
+| summarize count() by Identity, AppDisplayName |sort by count_ desc
