@@ -1,13 +1,20 @@
-SecurityEvent
-| where EventID in (4720, 4722, 4725, 4726, 4240, 4767)
-| order by TimeGenerated
+Event | where Source == "Microsoft-AzureADPasswordProtection-DCAgent" and EventID in ("10014","10015","10024","10025","30003","30005","30027","30007","30009","30028","30029") 
+|parse EventData with * '="Data1">' Samaccountname '</Data>' *
+|parse EventData with * '="Data2">' Name '</Data>' * 
 | extend EventType = case(
- EventID == 4720, 'User account created',
- EventID == 4722, 'User account enabled',
- EventID == 4725, 'User account disabled',
- EventID == 4726, 'User account deleted',
- EventID == 4767, 'User account unlocked',
- EventID == 4740, 'User account locked out',
+ EventID == 10014, 'Pass',
+ EventID == 10015, 'Pass',
+ EventID == 30002, 'Fail (due to customer password policy)	',
+ EventID == 30004, 'Fail (due to Microsoft password policy)	',
+ EventID == 30005, 'Fail (due to Microsoft password policy)	',
+ EventID == 30026, 'Fail (due to combined Microsoft and customer password policies)',
+ EventID == 30027, 'Fail (due to combined Microsoft and customer password policies)',
+ EventID == 30008, 'Audit-only Pass (would have failed customer password policy)	',
+ EventID == 30007, 'Audit-only Pass (would have failed customer password policy)	',
+ EventID == 30010, 'Audit-only Pass (would have failed Microsoft password policy)',
+ EventID == 30009, 'Audit-only Pass (would have failed Microsoft password policy)',
+ EventID == 30028, 'Audit-only Pass (would have failed combined Microsoft and customer password policies)',
+ EventID == 30029, 'Audit-only Pass (would have failed combined Microsoft and customer password policies)',
  strcat('Unkown Event ID', EventID))
-| project Time_Generated = TimeGenerated, Event_Type = EventType, Computer, Account, TargetAccount
-| limit 100
+| project TimeGenerated,Name, Samaccountname,EventType 
+| sort  by TimeGenerated  desc
