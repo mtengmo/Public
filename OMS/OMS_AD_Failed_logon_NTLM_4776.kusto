@@ -1,0 +1,21 @@
+SecurityEvent
+| where EventID == 4776 and Status != "0xc0000000" and Status != "0x0"
+| extend Reason = case(
+ Status == '0xc0000000', 'No error',
+ Status == '0x0', 'No error',
+ Status == '0xc0000064', 'user name does not exist',
+ Status == '0xc000006a', 'user name is correct but the password is wrong',
+ Status == '0xc000006d', '-Generic logon failure;An invalid username and/or password was used/LAN Manager Authentication Level mismatch between the source and target computers.',
+ Status == '0xc000006f', 'Account logon outside authorized hours.',
+ Status == '0xc0000070', 'Account logon from unauthorized workstation.',
+ Status == '0xc0000071', 'Account logon with expired password.',
+ Status == '0xc0000072', 'Account logon to account disabled by administrator.', 
+ Status == '0xc0000193', 'Account logon with expired account.', 
+ Status == '0xc0000234', 'user is currently locked out',
+ Status == '0xc0000071', 'expired password',
+ Status == '0xc0000224', 'user is required to change password at next logon',
+ Status == '0xc0000225', 'evidently a bug in Windows and not a risk',
+ Status == '0xc0000371', 'The local account store does not contain secret material for the specified account.',
+ strcat('Unknown reason substatus: ', Status))
+| project TimeGenerated,Status,Reason, TargetAccount, Computer, Workstation 
+| sort  by TimeGenerated  desc
