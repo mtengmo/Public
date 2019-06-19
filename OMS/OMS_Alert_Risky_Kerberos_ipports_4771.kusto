@@ -1,0 +1,2 @@
+SecurityEvent
+| where EventID == 4771 and toint(IpPort) < 1024 and toint(IpPort) != 0
