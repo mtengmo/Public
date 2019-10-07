@@ -24,7 +24,7 @@ Param (
 
 
 
-$result = Invoke-Sqlcmd -ServerInstance $ServerInstance -Database $database -Query $query | where { $_.e_mail -ne "" }
+$result = Invoke-Sqlcmd -ServerInstance $ServerInstance -Database $database -Query $query -ErrorAction Stop | where { $_.e_mail -ne "" }
 
 foreach ($user in $result) {
     Try {
@@ -34,7 +34,7 @@ foreach ($user in $result) {
         $samaccountname = $user.samaccountname
         $email = $user.e_mail
         Get-ADUser -Filter { (SAMAccountName -eq $samaccountname) -and (emailaddress -ne $email) } -SearchBase $searchbase -Properties emailaddress | 
-        Set-ADuser -emailaddress "$($user.e_mail)" -verbose 
+            Set-ADuser -emailaddress "$($user.e_mail)" -verbose 
 
     }
     catch {
