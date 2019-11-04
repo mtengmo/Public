@@ -1,0 +1,7 @@
+Event
+| where TimeGenerated > ago(1d)
+| where EventID == 208
+| where Computer in (PRODSQL)
+|parse EventData with * '<EventData xmlns="http://schemas.microsoft.com/win/2004/08/events/event"><Data>'SQLJob'</Data>' *
+|parse EventData with * '0</Data><Data>' SQLerror '</Data></EventData>' * 
+| project TimeGenerated, Computer, Source, SQLJob, SQLerror
