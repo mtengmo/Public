@@ -1,0 +1,19 @@
+SigninLogs |extend ClientAppUsed = iff(isempty(ClientAppUsed)==true,"Unknown" ,ClientAppUsed) |extend isLegacyAuth = case
+(ClientAppUsed contains "Browser", "No", 
+ClientAppUsed contains "Mobile Apps and Desktop clients", "No",
+ ClientAppUsed contains "Exchange ActiveSync", "No", 
+ ClientAppUsed contains "Other clients", "Yes", "Unknown") 
+ |extend Protocol = case(
+ClientAppUsed == 'Other clients; POP', 'POP',
+ClientAppUsed == 'Other clients; MAPI', 'MAPI',
+ClientAppUsed == 'Other clients; SMTP', 'SMTP',
+ClientAppUsed == 'Other clients; IMAP', 'IMAP',
+ClientAppUsed == 'Other clients', 'OtherClients',
+ClientAppUsed == 'Other clients; Older Office clients', 'OlderOfficeclients',
+strcat('Unknown reason substatus: ', ClientAppUsed))
+ |where isLegacyAuth=="Yes" 
+| where ResultType == "0" 
+| extend state_ = tostring(LocationDetails.state) 
+| extend browser_ = tostring(DeviceDetail.browser) 
+| extend operatingSystem_ = tostring(DeviceDetail.operatingSystem) 
+| summarize count() by UserPrincipalName,Identity, AppDisplayName, Protocol, state_, browser_, operatingSystem_, IPAddress, TimeGenerated |sort by TimeGenerated desc

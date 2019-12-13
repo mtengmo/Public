@@ -1,0 +1,9 @@
+SigninLogs
+| extend PropertiesJSON = parse_json(ConditionalAccessPolicies)
+| extend CAPoliciesJson = parse_json(tostring(PropertiesJSON)) 
+| mvexpand CAPoliciesJson
+//| project CAPoliciesJson .displayName
+| where CAPoliciesJson.displayName !=""
+| where tostring(CAPoliciesJson.result) == 'reportOnlyFailure'
+| project TimeGenerated, CAPolicyName = tostring(CAPoliciesJson.displayName), Identity, Location, ClientAppUsed
+

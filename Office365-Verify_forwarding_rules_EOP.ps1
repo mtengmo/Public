@@ -20,13 +20,13 @@ foreach ($User in $allUsers) {
     $UserInboxRules += Get-InboxRule -Mailbox $User.UserPrincipalname |
         Select @{name="UserPrincipalname"; Expression={$User.UserPrincipalname}} , Name, Description, Enabled, Priority, ForwardTo, ForwardAsAttachmentTo, RedirectTo, DeleteMessage | 
             Where-Object {($_.ForwardTo -ne $null) -or ($_.ForwardAsAttachmentTo -ne $null) -or ($_.RedirectsTo -ne $null)}  
-        $UserDelegates += Get-MailboxPermission -Identity $User.UserPrincipalName | 
-            Where-Object {($_.IsInherited -ne "True") -and ($_.User -notlike "*SELF*")}
+        #$UserDelegates += Get-MailboxPermission -Identity $User.UserPrincipalName | 
+        #    Where-Object {($_.IsInherited -ne "True") -and ($_.User -notlike "*SELF*")}
 }
-$SMTPForwarding = Get-Mailbox -ResultSize Unlimited | 
-    select Alias, getDisplayName, ForwardingAddress, ForwardingSMTPAddress, DeliverToMailboxandForward | 
-        where {$_.ForwardingSMTPAddress -ne $null}
+#$SMTPForwarding = Get-Mailbox -ResultSize Unlimited | 
+#    select Alias, getDisplayName, ForwardingAddress, ForwardingSMTPAddress, DeliverToMailboxandForward | 
+#        where {$_.ForwardingSMTPAddress -ne $null}
 # Export list of inboxRules, Delegates and SMTP Forwards
 $UserInboxRules | Export-Csv MailForwardingRulesToExternalDomains.csv -delimiter ";" -encoding utf8 -NoTypeInformation
-$UserDelegates | Export-Csv MailboxDelegatePermissions.csv -delimiter ";" -encoding utf8 -NoTypeInformation
+#$UserDelegates | Export-Csv MailboxDelegatePermissions.csv -delimiter ";" -encoding utf8 -NoTypeInformation
 $SMTPForwarding | Export-Csv Mailboxsmtpforwarding.csv -delimiter ";" -encoding utf8 -NoTypeInformation
