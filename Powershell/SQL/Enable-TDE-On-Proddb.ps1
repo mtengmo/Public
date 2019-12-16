@@ -9,15 +9,14 @@
 Param (
     [Parameter(Mandatory = $false)][string]$customernumber = "",
     [Parameter(Mandatory = $false)][string]$sqlinstance = "",
-    [Parameter(Mandatory = $false)][string]$sqlinstancetest = ""
-
-
-    
+    [Parameter(Mandatory = $false)][string]$sqlinstancetest = "",
+    [Parameter(Mandatory = $false)][string]$database = ""
+   
 )
 
 
 
-$database = "p$customernumber"
+#$database = "p$customernumber"
 $KeyVaultKeyName = 'Keyvaultname-SQL-TDE'
 #$ErrorActionPreference      = "Stop"
 $StartTime = $(get-date)
