@@ -10,5 +10,5 @@ CASE encryption_state
          WHEN '6'  THEN  'Protection change in progress (The certificate or asymmetric key that is encrypting the database encryption key is being changed.)'
          ELSE 'No Status'
          END,
-    percent_complete, encryptor_thumbprint, encryptor_type, percent_complete
+    percent_complete, encryptor_thumbprint, encryptor_type
 FROM sys.dm_database_encryption_keys
