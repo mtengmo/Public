@@ -1,0 +1,33 @@
+
+
+let t1 = datatable(Account2:string)           // (1)
+  [
+"Compturname"
+];
+let substringend = "$";
+let substringstart = "domain";
+let substringstart2 = ".local";
+let Query1 = view () {
+SecurityEvent
+| where EventID == 4624
+| where AccountType == "Machine" 
+|   top-nested    of Account          by dummy0 = max(1),
+    top-nested 1  of TimeGenerated    by dummy1 = max(TimeGenerated),
+    top-nested    of IpAddress        by dummy2 = max(1)
+|project-away dummy0,dummy1,dummy2
+};
+let Query2 = view () {
+SecurityEvent
+| where EventID == 4624
+| where AccountType == "User" 
+|   top-nested    of Account          by dummy0 = max(1),
+    top-nested 1  of TimeGenerated    by dummy1 = max(TimeGenerated),
+    top-nested    of IpAddress        by dummy2 = max(1)
+| project IpAddress, IpAddressUser = IpAddress, TimeGeneratedUser = TimeGenerated,  AccountUser = Account 
+};    
+Query1 | join Query2 on IpAddress 
+| project Account = trim_start(substringstart2,trim_end("\\$",trim_start(substringstart,Account))), AccountUser, IpAddressUser, TimeGenerated
+| extend Account2 = trim_start("lcaol",trim(@"[^\w]+",Account))
+| join t1 on Account2
+| project-away  Account, Account21
+
