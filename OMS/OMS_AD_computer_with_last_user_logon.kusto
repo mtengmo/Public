@@ -2,11 +2,11 @@
 
 let t1 = datatable(Account2:string)           // (1)
   [
-"Compturname"
+"Compturname" // upper case
 ];
 let substringend = "$";
-let substringstart = "domain";
-let substringstart2 = ".local";
+let substringstart = "DOMAIN"; // upper case
+let substringstart2 = ".LOCAL"; // upper case
 let Query1 = view () {
 SecurityEvent
 | where EventID == 4624
@@ -27,7 +27,7 @@ SecurityEvent
 };    
 Query1 | join Query2 on IpAddress 
 | project Account = trim_start(substringstart2,trim_end("\\$",trim_start(substringstart,Account))), AccountUser, IpAddressUser, TimeGenerated
-| extend Account2 = trim_start("lcaol",trim(@"[^\w]+",Account))
+| extend Account2 = trim_start("LOCAL",trim(@"[^\w]+",Account))
 | join t1 on Account2
 | project-away  Account, Account21
 
