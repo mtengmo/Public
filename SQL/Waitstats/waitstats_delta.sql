@@ -16,7 +16,7 @@ AS
 				, sample_time
             FROM [dbo].[utbl_waitstats]
             --where sample_time > getdate()-2
-            --GROUP BY [ServerName], [sample_time]
+            GROUP BY  [sample_time]
         ),
         sample_times
         as
@@ -42,7 +42,7 @@ AS
         ON --w.ServerName = wPrior.ServerName AND 
 w.wait_type = wPrior.wait_type AND Dates.Previoussample_time = wPrior.sample_time
         LEFT OUTER JOIN [dbo].[BlitzFirst_WaitStats_Categories] wc ON w.wait_type = wc.WaitType
-    WHERE DATEDIFF(MI, wPrior.sample_time, w.sample_time) BETWEEN 1 AND 60
+    WHERE DATEDIFF(MI, wPrior.sample_time, w.sample_time) BETWEEN 1 AND 1440
         AND [w].[wait_time_ms] >= [wPrior].[wait_time_ms];
 GO
 
