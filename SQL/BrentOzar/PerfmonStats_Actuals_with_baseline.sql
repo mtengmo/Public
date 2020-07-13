@@ -19,7 +19,7 @@ as
   CROSS APPLY (
   select distinct(dateadd(hour, datediff(hour, 0, CheckDate), 0)) as CheckDate
             from [BlitzFirst_PerfmonStats_Actuals]
-            where counter_name = 'Lock Timeouts/sec'
+            where counter_name = 'Lock Timeouts/sec' -- just to get a datelist
    ) t
         where 1=1
             and DATENAME(dw, c.[CheckDate] ) = DATENAME(dw, t.CheckDate ) -- week
