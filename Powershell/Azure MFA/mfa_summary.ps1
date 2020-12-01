@@ -9,7 +9,9 @@ $MFAEnabled = 0
 $MFADisabled = 0
 $MFApossible = 0
 $ADMobile_Without_MFA = 0
-
+$onlyapp = 0
+$onlymobile = 0
+$bothappandmobile = 0
 #Install-module MSOnline
 
 try {
@@ -47,7 +49,13 @@ foreach ($induser in $allusers) {
             elseif ($methodtype -eq "TwoWayVoiceMobile") { $TwoWayVoiceMobilecount++ }
             # If you want to get a complete list of what MFA method every user got, remove the hashtag below
             # write-host "User $upn uses $methodtype as MFA method"
+            if (($methodtype -eq "PhoneAppNotification" -or $methodtype -eq "PhoneAppOTP") -and ($methodtype -ne "OneWaySMS" -or $methodtype -ne "TwoWayVoiceMobile")) { $onlyapp++ }
+            if (($methodtype -ne "PhoneAppNotification" -or $methodtype -ne "PhoneAppOTP") -and ($methodtype -eq "OneWaySMS" -or $methodtype -eq "TwoWayVoiceMobile")) { $onlymobile++ }
+            if (($methodtype -eq "PhoneAppNotification" -or $methodtype -eq "PhoneAppOTP") -and ($methodtype -eq "OneWaySMS" -or $methodtype -eq "TwoWayVoiceMobile")) { $bothappandmobile++ }
+           
         }
+
+      
     }
 
     #MFA Status
@@ -73,6 +81,10 @@ write-host "Amount of users using MFA App Notification: $phoneappnotificationcou
 write-host "Amount of users using MFA App OTP Generator: $PhoneAppOTPcount"
 write-host "Amount of users using SMS codes: $OneWaySMScount"
 write-host "Amount of users using Phone call: $TwoWayVoiceMobilecount"
+write-host "Amount of users using OnlyApp: $onlyapp"
+write-host "Amount of users using OnlyMobile: $onlymobile"
+write-host "Amount of users using bothAuthMethod: $bothappandmobile"
+
 #write-host "Amount of users with no MFA method: $nomfamethod"
 
 write-host "Amount of users using MFA Disabled: $MFADisabled" -ForegroundColor Red
@@ -81,6 +93,8 @@ write-host "Amount of users with MFA Enforced (Enabled and enrolled): $MFAEnforc
 write-host "Amount of users with MFA method enrolled but not enabled by admin: $MFApossible" -ForegroundColor Green
 write-host "Amount of users with AD Mobile Without MFA: $ADMobile_Without_MFA" -ForegroundColor Yellow
 write-host "Amount of users with MFA methods enrolled: $mfamethod of $users users!" -ForegroundColor Yellow
+
+
 
 Write-Host "Hitrate enabled + enforced: $Hitrate%" 
 Write-Host "Hitrate enrolled methods: $Hitratemethods%" 
