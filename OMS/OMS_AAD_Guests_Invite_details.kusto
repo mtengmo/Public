@@ -1,0 +1,16 @@
+AuditLogs 
+| where TimeGenerated > ago(365d) and OperationName in('Invite external user')
+| extend InvitationId = tostring(AdditionalDetails[0].value)
+| extend InvitedUserEmailAddress = AdditionalDetails[1].value
+| extend InitiatedBy = InitiatedBy.user.userPrincipalName
+| project ActivityDateTime, InitiatedBy, InvitationId, InvitedUserEmailAddress
+| join kind= leftouter (
+    AuditLogs 
+    | where TimeGenerated > ago(365d) and OperationName in('Redeem external user invite')
+    | parse kind=regex TargetResources[0].displayName with * "InvitationId: " InvitationId:string ","
+    | parse kind=regex TargetResources[0].displayName with * "UPN: " InvitedUserUPN:string ", Email"
+    | project InvitationId,InvitedUserUPN,ActivityDateTimeAccepted = ActivityDateTime
+) on $left.InvitationId == $right.InvitationId
+| project-away InvitationId1 
+| where isnotnull(ActivityDateTimeAccepted)
+|order by ActivityDateTime desc
