@@ -7,7 +7,7 @@ catch {
     Connect-MsolService -Credential $cred
 }
 
-Get-MsolUser -all -Synchronized -EnabledFilter EnabledOnly | Where-Object { ($_.isLicensed -eq $true -and $_.StrongAuthenticationRequirements.State -eq $null) } | 
+Get-MsolUser -all -Synchronized -EnabledFilter EnabledOnly | Where-Object { ($_.isLicensed -eq $true) } | 
 Sort-Object -property UserPrincipalName | 
 Select-Object UserPrincipalName, DisplayName, Department, Title, Office, 
 @{N = 'Manager'; E = { (Get-ADUser (Get-ADUser -Filter { UserPrincipalName -eq $_.UserPrincipalName } -properties *).manager).UserPrincipalName } },
