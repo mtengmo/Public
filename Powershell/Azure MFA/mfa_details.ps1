@@ -13,7 +13,9 @@ catch {
 $users = Get-MsolUser -all -EnabledFilter EnabledOnly | Where-Object { ($_.isLicensed -eq $true) } 
 
 foreach ($user in $users) {
+    $timestamp = get-date
     $UserPrincipalName = $user.UserPrincipalName
+    Write-Output "$timestamp : $UserPrincipalName"
     $DisplayName = $user.DisplayName
     $department = $user.department
     $title = $user.title
@@ -22,13 +24,13 @@ foreach ($user in $users) {
     $WhenCreated = $user.WhenCreated
     $LastPasswordChangeTimestamp = $user.LastPasswordChangeTimestamp
     $StsRefreshTokensValidFrom = $user.StsRefreshTokensValidFrom
-    Write-Output $UserPrincipalName
     $MFA_default = ($user.StrongAuthenticationMethods | where { $_.isdefault -eq $true }).MethodType
     $Methods = $user.StrongAuthenticationMethods.methodtype -join "|"
     $Method_status = if ($user.StrongAuthenticationMethods.MethodType -ne $null) { "Enabled" } else { "Dislabed" }
     $mfa_number = $user.StrongAuthenticationUserDetails.Phonenumber
-    $MobilePhone = if ($user.MobilePhone) {$user.MobilePhone} else { "Empty"}
+    $MobilePhone = if ($user.MobilePhone) { $user.MobilePhone } else { "Empty" }
     #$Mobile = if ($user.Mobilephone -like "") { "empty" } else { "true" } 
+    
     $ReportLine = [PSCustomObject] @{
         UserPrincipalName           = $UserPrincipalName
         DisplayName                 = $DisplayName
@@ -43,7 +45,7 @@ foreach ($user in $users) {
         LastPasswordChangeTimestamp = $LastPasswordChangeTimestamp
         StsRefreshTokensValidFrom   = $StsRefreshTokensValidFrom
         mfa_number                  = $mfa_number
-        $MobilePhone                = $MobilePhone
+        MobilePhone                 = $MobilePhone
     }
     
     $Report.Add($ReportLine)
