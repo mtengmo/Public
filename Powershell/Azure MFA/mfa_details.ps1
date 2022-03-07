@@ -10,7 +10,7 @@ catch {
     Connect-MsolService -Credential $cred
 }
 
-#$users = Get-MsolUser -all -EnabledFilter EnabledOnly | Where-Object { ($_.isLicensed -eq $true) } 
+$users = Get-MsolUser -all -EnabledFilter EnabledOnly | Where-Object { ($_.isLicensed -eq $true) } 
 
 foreach ($user in $users) {
     $UserPrincipalName = $user.UserPrincipalName
