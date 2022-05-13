@@ -56,7 +56,7 @@ Param (
     [Parameter(Mandatory = $false)][int]$DaysInactive = 180,
     [Parameter(Mandatory = $false)][string]$ReportFilePath = 'C:\Script\Data\Inactivecomputers.csv',
     [Parameter(Mandatory = $false)][switch]$DisableObjects = $true,
-    [Parameter(Mandatory = $false)][switch]$DeleteObjects = $false,
+    [Parameter(Mandatory = $false)][switch]$DeleteObjects = $false
     
 )
 
