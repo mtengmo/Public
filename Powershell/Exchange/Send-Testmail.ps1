@@ -6,6 +6,6 @@ $mycreds = New-Object System.Management.Automation.PSCredential "username@contos
 
 
 
-Send-MailMessage -To "recipient@company.com" -Subject "Subject" -SmtpServer "smtp.office365.com" -Credential $mycreds -UseSsl -Port "587" -From "timereport-noreply@tobiidynavox.com"
+Send-MailMessage -To "recipient@company.com" -Subject "Subject" -SmtpServer "smtp.office365.com" -Credential $mycreds -UseSsl -Port "587" -From "mailbox@contoso.com"
 
 
