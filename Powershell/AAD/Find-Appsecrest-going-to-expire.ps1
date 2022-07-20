@@ -86,7 +86,7 @@
  
 param( 
     [parameter(Mandatory = $false)][int] $expiresWithinDays = "28"    
-    , [parameter(Mandatory = $false)][String] $MsgFrom = "servicedesk@tobii.com"  
+    , [parameter(Mandatory = $false)][String] $MsgFrom = "servicedesk@domain.com"  
 ) 
 $StartTime = $(get-date)
 
