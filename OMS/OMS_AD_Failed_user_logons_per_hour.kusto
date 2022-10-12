@@ -1,0 +1,6 @@
+
+SecurityEvent     
+| where TimeGenerated > ago(3d)
+| where EventID == 4625
+| where AccountType =~ "User"
+| summarize count() by TargetAccount,bin(TimeGenerated, 1h)
