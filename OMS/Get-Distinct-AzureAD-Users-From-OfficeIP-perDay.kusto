@@ -1,0 +1,10 @@
+SigninLogs
+| where TimeGenerated > ago(180d)
+| where ResultType == 0
+| where IPAddress == "xxxx"
+//| where DeviceDetail.trustType == "Hybrid Azure AD joined"
+| extend displayName_ = tostring(DeviceDetail.displayName)
+| extend trustType_ = tostring(DeviceDetail.trustType)
+| extend operatingSystem_ = tostring(DeviceDetail.operatingSystem)
+| summarize dcount(UserPrincipalName) by trustType_,bin(TimeGenerated, 1d)
+| order by TimeGenerated desc
