@@ -1,0 +1,1 @@
+Get-AzureADMSGroup -Filter "groupTypes/any(c:c eq 'DynamicMembership')" -All:$true | Select-Object Displayname,SecurityEnabled,CreatedDateTime,MailEnabled,@{Name="Membershiprule";Expression = {$_.membershiprule -replace "`n",", " -replace "`r"," "}} | export-csv c:\temp\dyngroups3.csv -Delimiter ";" -NoTypeInformation -Encoding utf8
