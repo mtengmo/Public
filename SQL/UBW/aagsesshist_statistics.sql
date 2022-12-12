@@ -2,7 +2,7 @@ use db_u_monserver
 
 -- aggreate session statistics from Unit4 BusinessWorld (Agresso) per day, used in monserver webinfo solution
 -- performance trends
--- Magnus Tengmo (magnus@highcloud.se) - 2020-05-20
+-- Magnus Tengmo (magnus at highcloud.se) - 2020-05-20
 -- added unique
 --
 -- U = Unknown user
