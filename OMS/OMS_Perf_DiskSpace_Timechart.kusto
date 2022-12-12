@@ -6,4 +6,4 @@ Perf
 | where InstanceName != "_Total"
 | where InstanceName !contains  "HarddiskVolume"
 | summarize min(CounterValue) by bin(TimeGenerated, 1h),InstanceName
-| render timechart
+| render timechartv
