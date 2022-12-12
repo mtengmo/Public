@@ -63,7 +63,7 @@ Param (
 #---------------------------------------------------------[Initialisations]--------------------------------------------------------
 
 #Set TargetOU
-$TargetOU = "OU=Computers Disabled,DC=Tobii,DC=intra"
+$TargetOU = "OU=Computers Disabled,DC=domain,DC=intra"
 $date = get-date -format yyyy-MM-dd
 #Set Error Action to Silently Continue
 $ErrorActionPreference = 'SilentlyContinue'
