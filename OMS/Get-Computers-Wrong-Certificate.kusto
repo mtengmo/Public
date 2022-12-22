@@ -1,0 +1,10 @@
+// https://support.microsoft.com/en-us/topic/kb5014754-certificate-based-authentication-changes-on-windows-domain-controllers-ad2c23b0-15d8-4340-a468-4d4f3b188f16
+// KB5014754
+// CVE-2022-26931 and CVE-2022-26923
+Event | where EventID == 39
+|parse EventData with * '="AccountName">' AccountName '</Data>' *
+|parse EventData with * '="Subject">' Subject '</Data>' * 
+|parse EventData with * '="Issuer">' Issuer '</Data>' * 
+|parse EventData with * '="Thumbprint">' Thumbprint '</Data>' * 
+//| Computer, AccountName, Subject, Issuer, Thumbprint, RenderedDescription
+| distinct Computer, AccountName, Subject, Issuer, Thumbprint, RenderedDescription

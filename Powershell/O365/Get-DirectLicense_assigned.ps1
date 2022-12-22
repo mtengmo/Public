@@ -49,10 +49,10 @@ function UserHasLicenseAssignedFromGroup {
 
 
 Get-MsolAccountSku
-$skuId = "tobii:ENTERPRISEPREMIUM"
+$skuId = "reseller-account:ENTERPRISEPREMIUM"
 $users = Get-MsolUser -All
 $users = $users  | where { $_.isLicensed -eq $true -and $_.Licenses.AccountSKUID -eq $skuId }
-$adusers = get-aduser -filter * -properties extensionattribute7, cn, l, description, title, sn, givenname, extensionattribute5, company
+$adusers = get-aduser -filter * -properties extensionattribute7, cn, l, description, title, sn, givenname, extensionattribute5, company,ExtensionAttribute14,ExtensionAttribute15
 
 
 
@@ -85,6 +85,8 @@ $result = $users.ForEach( {
             $r | Add-Member -MemberType NoteProperty -Name ExtensionAttribute5 -Value $temp.ExtensionAttribute5
             $r | Add-Member -MemberType NoteProperty -Name title -Value $temp.title
             $r | Add-Member -MemberType NoteProperty -Name company -Value $temp.company
+            $r | Add-Member -MemberType NoteProperty -Name ExtensionAttribute14 -Value $temp.ExtensionAttribute14
+            $r | Add-Member -MemberType NoteProperty -Name ExtensionAttribute15 -Value $temp.ExtensionAttribute15
 
 
             # $r | Add-Member -MemberType NoteProperty -Name Handles -Value $this.Handles
