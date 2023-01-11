@@ -37,9 +37,9 @@ $days = 30
 $lastLogonDate = (Get-Date).AddDays(-$days).ToFileTime() 
  
 # SMTP settings 
-$smtpServer = "mail.tobii.com" 
-$smtpFrom = "report@tobii.com" 
-$smtpTo = "magnus.tengmo@tobii.com" 
+$smtpServer = "mail.domain.com" 
+$smtpFrom = "report@domain.com" 
+$smtpTo = "firstname.lastname@domain.com" 
 $messageSubject = "$DomainName Windows OS Counts - lastLogon within $days days" 
  
 # HTML settings 

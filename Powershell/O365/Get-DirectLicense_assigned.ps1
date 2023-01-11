@@ -49,7 +49,7 @@ function UserHasLicenseAssignedFromGroup {
 
 
 Get-MsolAccountSku
-$skuId = "tobii:ENTERPRISEPREMIUM"
+$skuId = "domain:ENTERPRISEPREMIUM"
 $users = Get-MsolUser -All
 $users = $users  | where { $_.isLicensed -eq $true -and $_.Licenses.AccountSKUID -eq $skuId }
 $adusers = get-aduser -filter * -properties extensionattribute7, cn, l, description, title, sn, givenname, extensionattribute5, company
