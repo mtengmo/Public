@@ -1,7 +1,7 @@
 
 -- aggreate report runtime, invoketime, counts from Unit4 BusinessWorld (Agresso) per day, used in monserver webinfo solution
 -- performance trends
--- Magnus Tengmo (magnus@highcloud.se) - 2020-05-20
+-- Magnus Tengmo (magnus at highcloud.se) - 2020-05-20
 /*
 create table agresso_acrrepord_stats
 (
