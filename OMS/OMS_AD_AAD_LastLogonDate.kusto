@@ -9,7 +9,7 @@ SecurityEvent
     top-nested 1  of TimeGenerated    by dummy1 = max(TimeGenerated)
     //top-nested    of IpAddress        by dummy2 = max(1)
 |project-away dummy0,dummy1
-| extend Username = substring(trim_start("TOBII",trim(@"[^\w]+",Account)),1,20)
+| extend Username = substring(trim_start("DOMAIN",trim(@"[^\w]+",Account)),1,20)
 };
 let Query2 = view () {
 SigninLogs

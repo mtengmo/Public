@@ -7,10 +7,10 @@ $members.count
 
 Remove-DynamicDistributionGroup $group
 
-$group = "Tobii - All Japan Employees and contractors"
+$group = "domain - All Japan Employees and contractors"
 New-DynamicDistributionGroup -name "$group" -RecipientFilter "(Office -eq 'Tokyo') -and (RecipientType -eq 'UserMailbox') -and (CustomAttribute7 -ne 'Thesis worker/Internship')  -and (CustomAttribute7 -ne 'External Consultant') -and (CustomAttribute5 -eq 'Active')"
 
-$group = "Tobii - All Employees and consultants (worldwide)"
+$group = "domain - All Employees and consultants (worldwide)"
 New-DynamicDistributionGroup -name "$group" -RecipientFilter "(RecipientType -eq 'UserMailbox') -and (CustomAttribute7 -ne 'External Consultant') -and (CustomAttribute5 -eq 'Active')"
 
 
@@ -19,7 +19,7 @@ $users = Get-Recipient -RecipientPreviewFilter (Get-DynamicDistributionGroup $gr
 $users.count
 
 
-$group = "Tobii - All Employees including contractors (worldwide)"
+$group = "domain - All Employees including contractors (worldwide)"
 New-DynamicDistributionGroup -name "$group" -RecipientFilter "(RecipientType -eq 'UserMailbox') -and (CustomAttribute7 -ne 'External Consultant') -and (CustomAttribute5 -eq 'Active')"
 
 

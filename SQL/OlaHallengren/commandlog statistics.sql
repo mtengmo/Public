@@ -1,7 +1,7 @@
 use perfdb
 -- aggreate commandlog data, used in monserver webinfo solution
 -- performance trends
--- Magnus Tengmo (magnus@highcloud.se) - 2020-06-02
+-- Magnus Tengmo (magnus at highcloud.se) - 2020-06-02
 /*
 create table commandlog_stats
 (
