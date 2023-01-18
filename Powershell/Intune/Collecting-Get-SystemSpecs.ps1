@@ -2,7 +2,7 @@
 $CustomerId = "857d1xxxx" 
 # Replace with your Primary Key
 $SharedKey = "X1wyilNJxL/xxxxxx=="
-
+$version = 3
 
 #region Functions
 Function Build-Signature ($customerId, $sharedKey, $date, $contentLength, $method, $contentType, $resource) {
@@ -49,29 +49,31 @@ Function Post-LogAnalyticsData($customerId, $sharedKey, $body, $logType) {
     return $response.StatusCode
  
 }
-Function Get-LenovoFamilyName ($model) {
-    #$ComputerSystem = Get-CimInstance -ClassName Win32_ComputerSystem
-    #if ($ComputerSystem.Manufacturer -eq "LENOVO") {
-    
-    $URL = "https://download.lenovo.com/bsco/schemas/list.conf.txt" 
-    $OutFile = "$env:temp\Models_List.txt" 
-    Invoke-WebRequest -Uri $URL -OutFile $OutFile 
-    $Get_Models = Get-Content $OutFile | where-object { $_ -like "*$Model*" } 
-    $Get_FamilyName = ($Get_Models.split("("))[0]
-    Return $Get_FamilyName
-}
 
 
 function Get-SystemSpecs {
+
+    Function Get-LenovoFamilyName ($model) {
+        #$ComputerSystem = Get-CimInstance -ClassName Win32_ComputerSystem
+        #if ($ComputerSystem.Manufacturer -eq "LENOVO") {
+    
+        $URL = "https://download.lenovo.com/bsco/schemas/list.conf.txt" 
+        $OutFile = "$env:temp\Models_List.txt" 
+        Invoke-WebRequest -Uri $URL -OutFile $OutFile 
+        $Get_Models = Get-Content $OutFile | where-object { $_ -like "*$Model*" } 
+        $Get_FamilyName = ($Get_Models.split("("))[0]
+        Return $Get_FamilyName
+    }
+
     $processorSpecs = gcim win32_processor
     $processorName = $processorSpecs.Name
     $processorSpeed = [string]([math]::round(($processorSpecs.CurrentClockSpeed / 1000), 2)) + 'ghz'
     $processorCores = $processorSpecs.NumberOfCores
     $processorThreads = $processorSpecs.ThreadCount
-    $ramTotal = "{0:N2}" -f (((gcim CIM_PhysicalMemory | select -ExpandProperty Capacity) | measure -Sum).sum / 1gb ) 
+    $ramTotal = "{0:N0}" -f (((gcim CIM_PhysicalMemory | select -ExpandProperty Capacity) | measure -Sum).sum / 1gb ) 
     $ComputerSystem = Get-CimInstance -ClassName Win32_ComputerSystem
     if ($ComputerSystem.Manufacturer -eq "LENOVO") {
-        $LenovoFamilyName = Get-LenovoFamilyName $($ComputerSystem.model)
+        $LenovoFamilyName = Get-LenovoFamilyName $($ComputerSystem.model).substring(0,4)
     }
     function HDD-Details {
         $hdd = gcim Win32_DiskDrive | where { $_.MediaType -like "Fixed*" }
@@ -80,6 +82,7 @@ function Get-SystemSpecs {
 
     
     $Specs = [pscustomobject]@{
+        'Version'                 = $version
         'ComputerName'            = $env:ComputerName
         'Processor'               = $processorName
         'Cores'                   = $processorCores
@@ -114,6 +117,3 @@ $specs = Get-SystemSpecs
 
 $specs = $specs | ConvertTo-Json
 Post-LogAnalyticsData -customerId $customerId -sharedKey $sharedKey -body $specs -logType $logType
-
-
-
