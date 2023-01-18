@@ -1,3 +1,9 @@
+# Replace with your Workspace ID
+$CustomerId = "857d1xxxx" 
+# Replace with your Primary Key
+$SharedKey = "X1wyilNJxL/xxxxxx=="
+
+
 #region Functions
 Function Build-Signature ($customerId, $sharedKey, $date, $contentLength, $method, $contentType, $resource) {
     $xHeaders = "x-ms-date:" + $date
@@ -43,7 +49,18 @@ Function Post-LogAnalyticsData($customerId, $sharedKey, $body, $logType) {
     return $response.StatusCode
  
 }
- 
+Function Get-LenovoFamilyName ($model) {
+    #$ComputerSystem = Get-CimInstance -ClassName Win32_ComputerSystem
+    #if ($ComputerSystem.Manufacturer -eq "LENOVO") {
+    
+    $URL = "https://download.lenovo.com/bsco/schemas/list.conf.txt" 
+    $OutFile = "$env:temp\Models_List.txt" 
+    Invoke-WebRequest -Uri $URL -OutFile $OutFile 
+    $Get_Models = Get-Content $OutFile | where-object { $_ -like "*$Model*" } 
+    $Get_FamilyName = ($Get_Models.split("("))[0]
+    Return $Get_FamilyName
+}
+
 
 function Get-SystemSpecs {
     $processorSpecs = gcim win32_processor
@@ -52,35 +69,37 @@ function Get-SystemSpecs {
     $processorCores = $processorSpecs.NumberOfCores
     $processorThreads = $processorSpecs.ThreadCount
     $ramTotal = "{0:N2}" -f (((gcim CIM_PhysicalMemory | select -ExpandProperty Capacity) | measure -Sum).sum / 1gb ) 
-    
+    $ComputerSystem = Get-CimInstance -ClassName Win32_ComputerSystem
+    if ($ComputerSystem.Manufacturer -eq "LENOVO") {
+        $LenovoFamilyName = Get-LenovoFamilyName $($ComputerSystem.model)
+    }
     function HDD-Details {
         $hdd = gcim Win32_DiskDrive | where { $_.MediaType -like "Fixed*" }
         $hdd | ForEach { $_.caption + ", Capacity: " + [math]::round(($_.Size / 1GB), '2') + "GB" }
     }
+
     
     $Specs = [pscustomobject]@{
-        'ComputerName'         = $env:ComputerName
-        'Processor'            = $processorName
-        'Cores'                = $processorCores
-        'ThreadCount'          = $processorThreads
-        'ProcessorClockSpeed'  = $processorSpeed
-        'Physical Memory Size' = $ramTotal + ' GB'
-        'System Type'          = gcim win32_operatingsystem | select -ExpandProperty OSArchitecture
-        'Hard Drive(s)'        = HDD-Details
-        'Serial'               = gcim win32_bios | select -expandproperty serialnumber
-        'OS'                   = gcim win32_operatingsystem | select -expandproperty caption
+        'ComputerName'            = $env:ComputerName
+        'Processor'               = $processorName
+        'Cores'                   = $processorCores
+        'ThreadCount'             = $processorThreads
+        'ProcessorClockSpeed'     = $processorSpeed
+        'Physical Memory Size'    = $ramTotal + ' GB'
+        'System Type'             = gcim win32_operatingsystem | select -ExpandProperty OSArchitecture
+        'Hard Drive(s)'           = HDD-Details
+        'Serial'                  = gcim win32_bios | select -expandproperty serialnumber
+        'OS'                      = gcim win32_operatingsystem | select -expandproperty caption
+        'Physical Memory Size GB' = $ramTotal
+        'Manufacturer'            = $($ComputerSystem.Manufacturer)
+        'Model'                   = $($ComputerSystem.Model)
+        'LenovoFamilyName'        = $LenovoFamilyName
     }
     return $Specs
 }
-
+ 
 #endregion
 
-
-# Replace with your Workspace ID
-$CustomerId = "xxx"
- 
-# Replace with your Primary Key
-$SharedKey = "X1wyilNJxL/xxxxxxx=="
  
 # Specify the name of the record type that you'll be creating
 $LogType = "system_specs"
@@ -95,4 +114,6 @@ $specs = Get-SystemSpecs
 
 $specs = $specs | ConvertTo-Json
 Post-LogAnalyticsData -customerId $customerId -sharedKey $sharedKey -body $specs -logType $logType
+
+
 
