@@ -117,5 +117,5 @@ if ($manufacturer -eq "Lenovo") {
 }
 
 
-# toast notifications missing
+# toast notifications
  
