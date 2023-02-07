@@ -1,0 +1,7 @@
+EmailEvents
+| where TimeGenerated > ago(1000h)
+| where RecipientEmailAddress !contains ("xxxxxx") 
+| where DeliveryAction != "Delivered"
+//| where DeliveryAction != "Blocked"
+| summarize MailPerHour = count() by bin (TimeGenerated, 30min), RecipientEmailAddress
+| where MailPerHour > 100
