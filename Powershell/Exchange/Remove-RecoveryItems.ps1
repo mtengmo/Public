@@ -19,4 +19,7 @@ For ($i = 1; $i -lt 10000; $i++) {
 } 
 
 
+#Get-MailboxFolderStatistics -Identity bdan -FolderScope RecoverableItems | Format-Table Name,FolderAndSubfolderSize,ItemsInFolderAndSubfolders -Auto
+
+
  
