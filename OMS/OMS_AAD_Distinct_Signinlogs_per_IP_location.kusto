@@ -1,0 +1,10 @@
+SigninLogs
+| where TimeGenerated > ago(90d)
+| where Status.errorCode == 0
+| where UserDisplayName !contains "admin" 
+| where UserDisplayName !contains "svc-" 
+| extend networkNames_ = tostring(parse_json(tostring(parse_json(NetworkLocationDetails)[0].networkNames)))
+| where networkNames_  <> ""
+| summarize  Distinct=dcount(UserPrincipalName) by  networkNames_,bin(TimeGenerated, 7d)
+| render columnchart    
+
