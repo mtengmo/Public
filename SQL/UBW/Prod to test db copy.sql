@@ -1,18 +1,26 @@
-// Draft copy prod to test
+-- Draft copy prod to test
+use agrtest
+
 sp_changedbowner 'agrtest'
+
 
 
 declare @LastExtractDate varchar(255)
 select top 1
-	@LastExtractDate=format([last_update],'yyyy-MM-dd')
-from acrrepord
+	@LastExtractDate=format([last_update],'yyyy-MM-dd HH:mm')
+from awfservice
 order by last_update desc
+select @LastExtractDate
+
 update acrclient
 	set client_name = '*TEST* ' + @LastExtractDate + ' ' + client_name
 
+	
 
+-- declare @oldhostname varchar(255) = 'fromhostname' --prod
+-- business server
 
-declare @newhostname varchar(255) = 'prodhostname'
+declare @newhostname varchar(255) = 'tohostname' --test
 
 declare @oldhostname varchar(255)
 select top 1
@@ -28,7 +36,7 @@ select *
 from aagserverqueue
 where status = 'n'
 
-
+-- webserver
 declare @newwebhostname varchar(255) = 'agrtest.domain.se'
 declare @oldwebhostname varchar(255)
 select top 1
@@ -46,7 +54,7 @@ from aagserviceuri
 
 
 
-
+-- remove mailaddresses
 update agladdress
   set e_mail = replace(e_mail, '@', '!')
   where e_mail != ''
