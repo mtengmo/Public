@@ -1,6 +1,6 @@
 ## Remove adminsholder from account
 ## https://specopssoft.com/blog/troubleshooting-user-account-permissions-adminsdholder/
-$samaccountname = "samaccountname"
+$samaccountname = "am1791"
 
 set-aduser $samaccountname -remove @{adminCount = 1 }
 
