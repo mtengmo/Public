@@ -59,3 +59,6 @@ update agladdress
   set e_mail = replace(e_mail, '@', '!')
   where e_mail != ''
 
+
+
+-- Update agrtest to simple mode
