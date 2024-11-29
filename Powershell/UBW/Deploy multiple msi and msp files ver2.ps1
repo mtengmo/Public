@@ -1,92 +1,107 @@
  
 # Draft
 # Busines Server
-# 1 Update 10
-$files = Get-ChildItem -Path "E:\InstallFiles\2024-11\U4ERP7UPDATE14" -Recurse -Include *.msp
+# 1 Update 14
+$files = Get-ChildItem -Path "E:\Installubw\2024-11\U4ERP7UPDATE14" -Recurse -Include *.msp
 foreach ($msifile in $files)
 {
+    $timestamp = get-date
     Write-Host " " | Out-Null
-    Write-Host "Now applying hotfix: $msifile" | Out-Null
+    Write-Host "$timestamp : Now applying hotfix: $msifile" | Out-Null
     $arguments= "/qr /norestart"
     Start-Process  -file  $msifile.FullName -arg $arguments -passthru | wait-process
 }
 
 
 # 1 Msi:s  # req
-$files = Get-ChildItem -Path "E:\InstallFiles\2024-11\U4ERP7UPDATE14" -Recurse -Include *.msi 
+$files = Get-ChildItem -Path "E:\Installubw\2024-11\U4ERP7UPDATE14" -Recurse -Include *.msi 
 
 foreach ($msifile in $files)
 {
+    $timestamp = get-date
     Write-Host " " | Out-Null
-    Write-Host "Now applying hotfix: $msifile" | Out-Null
+    Write-Host "$timestamp : Now applying hotfix: $msifile" | Out-Null
     $arguments= "/qr /norestart"
     Start-Process  -file  $msifile.FullName -arg $arguments -passthru | wait-process
 }
 
 
-# 3 Msp:s
-$files = Get-ChildItem -Path "E:\InstallFiles\2024-11\Hotfix 241108" -Recurse -Include *.msp  
+# Hotfixes
+# verify number in files, 32 files 
+$files = Get-ChildItem -Path "E:\InstallUBW\2024-11\Hotfix 241108" -Recurse  -Include *.msp  
 foreach ($msifile in $files)
 {
+    $timestamp = get-date
     Write-Host " " | Out-Null
-    Write-Host "Now applying hotfix: $msifile" | Out-Null
+    Write-Host "$timestamp : Now applying hotfix: $msifile" | Out-Null
     $arguments= "/qr /norestart"
     Start-Process  -file  $msifile.FullName -arg $arguments -passthru | wait-process
 }
 
 # ASQs
+#update manager - update + requistions
+# asq´s
 
 
 
 # Webserver
-# 1 Update 10
-$files = Get-ChildItem -Path "E:\InstallFiles\2024-11\U4ERP7UPDATE14" -Recurse -Include *.msp | Where-Object {$_.Name -like "*64-bit*"}
+# 1 Update 14
+$files = Get-ChildItem -Path "E:\InstallUBW\2024-11\U4ERP7UPDATE14" -Recurse -Include *.msp | Where-Object {$_.Name -like "*64-bit*"}
 foreach ($msifile in $files)
 {
+    $timestamp = get-date
     Write-Host " " | Out-Null
-    Write-Host "Now applying hotfix: $msifile" | Out-Null
+    Write-Host "$timestamp : Now applying hotfix: $msifile" | Out-Null
     $arguments= "/qr /norestart"
     Start-Process  -file  $msifile.FullName -arg $arguments -passthru | wait-process
 }
 
-$files = Get-ChildItem -Path "E:\InstallFiles\2024-11\U4ERP7UPDATE14" -Recurse -Include *.msi 
+#requisition
+$files = Get-ChildItem -Path "E:\InstallUBW\2024-11\U4ERP7UPDATE14" -Recurse -Include *.msi 
 foreach ($msifile in $files)
 {
+    $timestamp = get-date
     Write-Host " " | Out-Null
-    Write-Host "Now applying hotfix: $msifile" | Out-Null
+    Write-Host "$timestamp : Now applying hotfix: $msifile" | Out-Null
     $arguments= "/qr /norestart"
     Start-Process  -file  $msifile.FullName -arg $arguments -passthru | wait-process
 }
 
 
-# 2 Msi:s
-$files = Get-ChildItem -Path "E:\InstallFiles\2024-11\UNIT4 ERP Desktop HelpUPD14" -Recurse -Include *.msi | Where-Object {$_.Name -like "*64-bit*"}
+# helpfiles
+$files = Get-ChildItem -Path "E:\InstallUBW\2024-11\UNIT4 ERP Desktop HelpUPD14" -Recurse -Include *.msi 
 
 foreach ($msifile in $files)
 {
+    $timestamp = get-date
     Write-Host " " | Out-Null
-    Write-Host "Now applying hotfix: $msifile" | Out-Null
+    Write-Host "$timestamp : Now applying hotfix: $msifile" | Out-Null
     $arguments= "/qr /norestart"
     Start-Process  -file  $msifile.FullName -arg $arguments -passthru | wait-process
 }
 
-$files = Get-ChildItem -Path "E:\InstallFiles\2024-11\UNIT4 ERP Web HelpUPD14" -Recurse -Include *.msi | Where-Object {$_.Name -like "*64-bit*"}
+$files = Get-ChildItem -Path "E:\InstallUBW\2024-11\UNIT4 ERP Web HelpUPD14" -Recurse -Include *.msi 
+$files.count
 
 foreach ($msifile in $files)
 {
+    $timestamp = get-date
     Write-Host " " | Out-Null
-    Write-Host "Now applying hotfix: $msifile" | Out-Null
+    Write-Host "$timestamp : Now applying hotfix: $msifile" | Out-Null
     $arguments= "/qr /norestart"
     Start-Process  -file  $msifile.FullName -arg $arguments -passthru | wait-process
 }
 
 
 # 3 Msp:s
-$files = Get-ChildItem -Path "E:\InstallFiles\2024-11\Hotfix 241108" -Recurse -Include *.msp  | Where-Object {$_.Name -like "*64-bit*"}
+$files = Get-ChildItem -Path "E:\InstallUBW\2024-11\Hotfix 241108" -Recurse -Include *.msp  | Where-Object {$_.Name -like "*64-bit*"}
+$files.count
+
 foreach ($msifile in $files)
 {
+    $timestamp = get-date
     Write-Host " " | Out-Null
-    Write-Host "Now applying hotfix: $msifile" | Out-Null
+    Write-Host "$timestamp : Now applying hotfix: $msifile" | Out-Null
     $arguments= "/qr /norestart"
     Start-Process  -file  $msifile.FullName -arg $arguments -passthru | wait-process
 }
