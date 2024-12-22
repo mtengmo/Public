@@ -109,7 +109,7 @@ foreach ($msifile in $files)
 
 # WinSCP
 #act
-# asq
+# asqipamipam
 
  
 # Other
