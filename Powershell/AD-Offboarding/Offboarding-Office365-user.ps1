@@ -171,7 +171,7 @@ Helpdesk
 
     $timestamp = Get-Date
     Write-Output "$timestamp : Emailing manager: $manager_mail for $userPrincipalName"
-    Send-MailMessage `
+    Message `
         -To $manager_mail `
         -Subject $mailsubject `
         -Body $mailbody `
