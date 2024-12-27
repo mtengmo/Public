@@ -1,0 +1,3 @@
+# pw from before
+# used for RD connection broker
+C:\Temp\server>"C:\Program Files\Git\mingw64\bin\openssl.exe" x509 -in certificate.cer -outform der -out certificate.cert.pfx

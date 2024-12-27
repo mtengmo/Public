@@ -62,3 +62,7 @@ update agladdress
 
 
 -- Update agrtest to simple mode
+USE [master]
+GO
+ALTER DATABASE [agrtest] SET RECOVERY SIMPLE WITH NO_WAIT
+GO
