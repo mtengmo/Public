@@ -112,6 +112,6 @@ $PolicyScope = "helpdesk@contoso.com"
 $Desc = "Restrict the access for the Azure Automation usea-tbdvox-adintegrations ExpireInactiveAdmins to the specified mailbox - helpdesk@contoso.com"
 
 Connect-exchangeonline
-New-ApplicationAccessPolicy -AccessRight RestrictAccess -AppId $ApplicationID -PolicyScopeGroupId $PolicyScope -Description $Desc
+New-Application -AccessRight RestrictAccess -AppId $ApplicationID -PolicyScopeGroupId $PolicyScope -Description $Desc
 
 # wait a couple of hours until permissions is synced
