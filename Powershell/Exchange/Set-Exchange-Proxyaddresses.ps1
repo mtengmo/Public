@@ -1,4 +1,12 @@
 # update proxyaddress based on preferred and legal name from AD attributes
+# the runbook is schedule to run every 24h and as soon as a new hire is detected in AD. 
+param(
+    [int]$days = -30 #days back for new hires
+) 
+
+
+       
+
 function Remove-StringLatinCharacter {
     <#
 .SYNOPSIS
@@ -6,7 +14,7 @@ function Remove-StringLatinCharacter {
 .PARAMETER String
 	Specifies the String that will be processed
 .EXAMPLE
-    Remove-StringLatinCharacter -String "L'été de Raphaël"
+    Remove-StringLatinCharacter -String "L'�t� de Rapha�l"
 
     L'ete de Raphael
 .EXAMPLE
@@ -131,75 +139,83 @@ function Remove-StringSpecialCharacter {
     } #PROCESS
 }
 
+ 
+
 $timestamp = Get-date
-$searchbase = "OU=Locations,DC=local,DC=com"
-$users = get-aduser -filter { enabled -eq $true -and extensionAttribute5 -like "*" -and extensionAttribute4 -like "*" -and extensionattribute6 -like "*" } -properties extensionattribute4, extensionAttribute5, extensionattribute6, ProxyAddresses, mail, mailnickname, Givenname, sn -SearchBase $searchbase
-#$users = get-aduser te1473 -properties extensionattribute4, extensionAttribute5, extensionattribute6, ProxyAddresses, mail, mailnickname, Givenname, sn  , msDS-cloudExtensionAttribute1, msDS-cloudExtensionAttribute2
-Write-output "$timestamp : Found $($user.count) users"
+$searchbase = "OU=Locations,DC=domain,DC=com"
+$users = get-aduser -filter { enabled -eq $true -and  company -like "*" -and  extensionattribute4 -like "*" } -properties company, extensionattribute4, extensionAttribute5, extensionattribute6, extensionattribute10, extensionattribute11, ProxyAddresses, mail, mailnickname, Givenname, sn, displayname,whenCreated -SearchBase $searchbase
+
+#$users = get-aduser mros -properties extensionattribute4, extensionAttribute5, extensionattribute6, ProxyAddresses, mail, mailnickname, Givenname, sn  , msDS-cloudExtensionAttribute1, msDS-cloudExtensionAttribute2
+
+Write-output "$timestamp : Found $($users.count) users"
 $format = "yyyyMMddHHmmss.0Z"
 #20090608010000.0Z
 $maildomainlookup = @{
  
-    "Company AB"              = "company1.com"
-    "Company Ltd."            = "company1.com"
-    "Company LLC"             = "company1.com"
-    "Company (Suzhou)Co.,Ltd" = "company1.com"
-    "Company AS"              = "company1.com"
-    "Company Suzhou"          = "company1.com"
-    "Company ApS Denmark"     = "company1.com"
-    "Company GmbH"            = "company1.com"
-    "Company Canada Inc."     = "company1.com"
-    "Company2"                = "company2.com"
-    "Company3 Belgium"        = "company3.com"
-    "Company3 France"         = "company3.com"
-    "Company3 Sweden"         = "company3.com"
+    "4620"           = "company1.com"
+    "4421"           = "company1.com"
+    "1021"           = "company1.com"
+    "8620"           = "company1.com"
+    "NORWAY"         = "company1.com"
+    "Trading Suzhou" = "company1.com"
+    "4520"           = "company1.com"
+    "4920"           = "company1.com"
+    "1025"           = "company1.com"
+    "3530"           = "company1.com"
+    "3240"           = "teams.company2.com"
+    "3340"           = "teams.company2.com"
+    "4640"           = "teams.company2.com"
+    "1027"           = "company4.com"
+    "4940"           = "company4.com"
+    "6120"           = "company3.com"
+    "6420"           = "company3.co.nz"
 
 }
 $i = 0
 $j = 0
 $o = 0
-#$maildomain = "company1.com"
-$datesearch = (Get-Date).AddDays(-30)
+
+
+#[datetime]$datesearch = "2023-11-15" #30 days before Workday went live
+$datesearch = (Get-Date).AddDays($days)
+
 foreach ($user in $users) {
    
     $StatusHireDate_raw = $user.extensionattribute4  #hire date from Wday
 
     $timestamp = get-date
     #search only for new hires
-    $StatusHireDate = [System.DateTime]::ParseExact($StatusHireDate_raw, $format, [System.Globalization.CultureInfo]::InvariantCulture)
-    if ($statushiredate -gt $datesearch) {
-        Write-Output "$timestamp : Start looping $($user.SamAccountName) with  legal company:$($user.extensionattribute6)."
-        $extensionattribute6 = $user.extensionattribute6 # legal company
-        $maildomain = $maildomainlookup[$extensionattribute6]
-        if ($user.extensionattribute6 -eq "Company GmbH" -and $user.extensionattribute13 -eq "xxx") {
-            #acapela in Germany
-            $maildomain = "company3.com"
-        }
-        if ($user.extensionattribute6 -eq "Company3 Belgium" -and $user.extensionattribute13 -eq "xxx") {
-            #td in Brussel 
-            $maildomain = "company1.com"
-        }
-        $legalGivenname = $user.'msDS-cloudExtensionAttribute1'  #legal givenname from Wday
-        $legalsn = $user.'msDS-cloudExtensionAttribute2'  #legal surname from Wday
-        $GivenName = $user.GivenName
-        $sn = $user.sn
-        $samaccountname = $user.samaccountname
-        $EmailGiven = Remove-StringSpecialCharacter(Remove-StringLatinCharacter($user.Givenname).ToLower())
-        $Emailsn = Remove-StringSpecialCharacter(Remove-StringLatinCharacter($user.sn).ToLower())
-        
-        if ($user.'msDS-cloudExtensionAttribute1') {
-            $EmailLegalGivenname = Remove-StringSpecialCharacter(Remove-StringLatinCharacter($user.'msDS-cloudExtensionAttribute1').ToLower())
-        }
-        if ($user.'msDS-cloudExtensionAttribute2') {
-            $EmailLegalsn = Remove-StringSpecialCharacter(Remove-StringLatinCharacter($user.'msDS-cloudExtensionAttribute2').ToLower())
-        }
-        
-        $newPrimarySMTP = "SMTP:" + $EmailGiven + "." + $Emailsn + "@" + $maildomain
-        $newPrimaryemail = $EmailGiven + "." + $Emailsn + "@" + $maildomain
-        $newLegalAliasSMTP = "smtp:" + $EmailLegalGivenname + "." + $EmailLegalsn + "@" + $maildomain
-        $newLegalAlias = $EmailLegalGivenname + "." + $EmailLegalsn + "@" + $maildomain
-    
+    #$StatusHireDate = [System.DateTime]::ParseExact($StatusHireDate_raw, $format, [System.Globalization.CultureInfo]::InvariantCulture)
+    $StatusHireDate = $user.whenCreated #changed to ad user creating because of different position in Wday
 
+
+    if ($statushiredate -gt $datesearch) {
+    #    Write-Output "$timestamp : Start looping $($user.SamAccountName) with  legal company:$($user.extensionattribute10)."
+        $extensionattribute6 = $user.extensionattribute6 
+        $extensionattribute10 = $user.extensionattribute10 # legal company
+        try {
+            $maildomain = $maildomainlookup[$extensionattribute10]
+        }
+        catch {
+            $maildomain = "company1.com"
+            Write-Output "$timestamp : Didn´t find maildomain based in legal company $extensionattribute10"
+        }
+  
+        if ($user.extensionattribute11 -eq "1274_Board Member" ) {
+            $maildomain = "company5.com"
+
+        }
+        $samaccountname = $user.samaccountname
+ 
+        $displayname = $user.displayname
+        $maildisplayname = Remove-StringLatinCharacter($displayname).ToLower()  #remove åäö and to lower
+        $maildisplayname = $maildisplayname -replace '[^a-zA-Z0-9\s]', ''  #remove special characters except space
+        $maildisplayname = $maildisplayname.Replace(" ", ".")  #change space to dot
+     
+
+        $newPrimarySMTP = "SMTP:" + $maildisplayname + "@" + $maildomain
+        $newPrimaryemail = $maildisplayname + "@" + $maildomain
+   
         
         $o++
         if ($user.proxyaddresses) {
@@ -209,35 +225,51 @@ foreach ($user in $users) {
 
             if ($ADPrimarySMTP -ne $newPrimarySMTP) {
                 $oldADPrimarySMTP = $ADPrimarySMTP.ToLower() #making it an alias
-                Write-Output "$timestamp : Need to update primary smtp with $newPrimarySMTP old value: $ADPrimarySMTP, new alias: $oldADPrimarySMTP, belongs to company $extensionattribute6"
-                Set-ADUser $SamAccountName -Remove @{ProxyAddresses = $ADPrimarySMTP }   -WhatIf
-                Set-ADuser -Identity $SamAccountName  -add @{ProxyAddresses = "$newPrimarySMTP" }  -WhatIf
-                Set-ADuser -Identity $SamAccountName  -add @{ProxyAddresses = "$oldADPrimarySMTP" }  -WhatIf
-                Set-ADuser -Identity $samaccountname  -replace @{mail = "$newPrimaryemail" }  -WhatIf
-                Set-ADuser -Identity $samaccountname  -replace @{mailnickname = "$samaccountname" }  -WhatIf  # needed for msexchange issue: https://social.msdn.microsoft.com/Forums/SqlServer/en-US/081d3259-57b1-44ab-a8d0-5334b83d2938/azure-ad-connect-doesnt-sync-msexchhidefromaddresslists?forum=WindowsAzureAD
+                Write-Output "$timestamp : **** Need to update ****  samaccountname $samaccountname  primary smtp with $newPrimarySMTP old value: $ADPrimarySMTP, new alias: $oldADPrimarySMTP, belongs to company $extensionattribute10 $($user.company)"
+                Set-ADUser -Identity $SamAccountName -remove @{ProxyAddresses = $ADPrimarySMTP }   
+                Set-ADuser -Identity $SamAccountName  -add @{ProxyAddresses = "$newPrimarySMTP" }  
+                Set-ADuser -Identity $SamAccountName  -add @{ProxyAddresses = "$oldADPrimarySMTP" }  
+                Set-ADuser -Identity $samaccountname  -replace @{mail = "$newPrimaryemail" }  
+                Set-ADuser -Identity $samaccountname  -replace @{mailnickname = "$samaccountname" }    # needed for msexchange issue: https://social.msdn.microsoft.com/Forums/SqlServer/en-US/081d3259-57b1-44ab-a8d0-5334b83d2938/azure-ad-connect-doesnt-sync-msexchhidefromaddresslists?forum=WindowsAzureAD
                 $j++
             }
             else {
-                Write-Output "$timestamp : No need to update primary smtp with $newPrimarySMTP old value: $ADPrimarySMTP are equal"
+                Write-Output "$timestamp : No need to update $samaccountname primary smtp with $newPrimarySMTP old value: $ADPrimarySMTP are equal"
 
             }
  
         }
         else {
-            Write-Output "$timestamp : No proxyaddresses, need to generate new one: $newPrimarySMTP $newLegalAliasSMTP"
+            Write-Output "$timestamp : **** No proxyaddresses ****, need to generate new one for samaccountname $samaccountname newPrimarySmtp $newPrimarySMTP  "# $newLegalAliasSMTP"
             $i++
-            Set-ADuser -Identity $samaccountname  -add @{ProxyAddresses = "$newPrimarySMTP" }   -WhatIf 
-            Set-ADuser -Identity $samaccountname  -add @{ProxyAddresses = "smtp:$newLegalAliasSMTP" }  -WhatIf
-            Set-ADuser -Identity $samaccountname  -add @{ProxyAddresses = "smtp:$samaccountname@tbdvox.com" }    -WhatIf
-            Set-ADuser -Identity $samaccountname  -add @{ProxyAddresses = "smtp:$samaccountname@tbdvox.onmicrosoft.com" }   -WhatIf  
-            Set-ADuser -Identity $samaccountname  -add @{mail = "$newPrimaryemail" }  -WhatIf
-            Set-ADuser -Identity $samaccountname  -add @{mailnickname = "$samaccountname" }    -WhatIf  # needed for msexchange issue: https://social.msdn.microsoft.com/Forums/SqlServer/en-US/081d3259-57b1-44ab-a8d0-5334b83d2938/azure-ad-connect-doesnt-sync-msexchhidefromaddresslists?forum=WindowsAzureAD
-            Write-Output "$timestamp : Updated proxyaddresses for $samaccountname"
+            Set-ADuser -Identity $samaccountname  -add @{ProxyAddresses = "$newPrimarySMTP" }   -Verbose  
+            Set-ADuser -Identity $samaccountname  -add @{ProxyAddresses = "smtp:$samaccountname@domain.com" }    
+            Set-ADuser -Identity $samaccountname  -add @{ProxyAddresses = "smtp:$samaccountname@domain.onmicrosoft.com" }     
+            Set-ADuser -Identity $samaccountname  -add @{mail = "$newPrimaryemail" }  
+            Set-ADuser -Identity $samaccountname  -replace @{mailnickname = "$samaccountname" }      # needed for msexchange issue: https://social.msdn.microsoft.com/Forums/SqlServer/en-US/081d3259-57b1-44ab-a8d0-5334b83d2938/azure-ad-connect-doesnt-sync-msexchhidefromaddresslists?forum=WindowsAzureAD
+            Write-Output "$timestamp : **** Updated proxyaddresses ****** for $samaccountname"
 
         }
   
     }
+    Remove-Variable -name mailnickname -ErrorAction SilentlyContinue
+    Remove-Variable -name newPrimarySMTP -ErrorAction SilentlyContinue
+    Remove-Variable -name newLegalAliasSMTP -ErrorAction SilentlyContinue
+    Remove-Variable -name oldADPrimarySMTP -ErrorAction SilentlyContinue
+    Remove-Variable -name extensionattribute6 -ErrorAction SilentlyContinue
+    Remove-Variable -name extensionattribute10 -ErrorAction SilentlyContinue
+    Remove-Variable -name maildisplayname -ErrorAction SilentlyContinue
+    Remove-Variable -name displayname -ErrorAction SilentlyContinue
+    Remove-Variable -name maildomain -ErrorAction SilentlyContinue
+    
 
+    
+    
+    
 }
 
-Write-Output "$timestamp : $i AD users, Newly hired $o,  $j updated with perferred name"
+#start AAD sync
+if (($i -gt 0) -or ($j -gt 0)) {
+    Start-ADSyncSyncCycle -PolicyType delta
+}
+Write-Output "$timestamp : $i new AD user(s) updated, Newly hired $o,  $j updated with perferred name"
