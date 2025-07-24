@@ -1,10 +1,5 @@
 # Improved logging for Azure Automation Account - Multi-Group Support
 # Clear any existing variables at script start (Azure Automation best practice)
-# Setup permissions for managed identity: https://jeffbrown.tech/graph-api-managed-identity/
-# Scopes: Device.Read.All, Group.ReadWrite.All, Directory.Read.All
-# todo, some re-tries for target group membership. 
-# kudos to Github Copilot for most code genertation
-
 Remove-Variable -Name primaryUserIds -ErrorAction SilentlyContinue
 Remove-Variable -Name uniqueUserIds -ErrorAction SilentlyContinue
 
@@ -14,19 +9,29 @@ Connect-MgGraph -Identity
 # === PARAMETERS ===
 $deviceGroupConfigs = @(
     @{
-        DeviceGroupName = "Autopatch - Parent Group"
-        UserGroupName = "Primary Users of CloudPC Parent Group"
-        UserGroupDescription = "Auto-managed group of primary users for CloudPC Parent Group devices"
+        DeviceGroupName      = "Autopatch - Parent Group"
+        UserGroupName        = "Primary Users of Autopatch Parent Group"
+        UserGroupDescription = "Auto-managed group of primary users for Autopatch Parent Group devices"
     },
     @{
-        DeviceGroupName = "Autopatch - Ring1"
-        UserGroupName = "Primary Users of CloudPC Ring1 Group"
-        UserGroupDescription = "Auto-managed group of primary users for CloudPC Ring1 Group devices"
+        DeviceGroupName      = "Autopatch - Ring1"
+        UserGroupName        = "Primary Users of Autopatch Ring1 Group"
+        UserGroupDescription = "Auto-managed group of primary users for Autopatch Ring1 Group devices"
     },
     @{
-        DeviceGroupName = "Autopatch - Test"
-        UserGroupName = "Primary Users of CloudPC Test Group"
-        UserGroupDescription = "Auto-managed group of primary users for CloudPC Test Group devices"
+        DeviceGroupName      = "Autopatch - Ring2"
+        UserGroupName        = "Primary Users of Autopatch Ring2 Group"
+        UserGroupDescription = "Auto-managed group of primary users for Autopatch Ring2 Group devices"
+    },
+    @{
+        DeviceGroupName      = "Autopatch - Ring3"
+        UserGroupName        = "Primary Users of Autopatch Ring3 Group"
+        UserGroupDescription = "Auto-managed group of primary users for Autopatch Ring3 Group devices"
+    },
+    @{
+        DeviceGroupName      = "Autopatch - Test"
+        UserGroupName        = "Primary Users of Autopatch Test Group"
+        UserGroupDescription = "Auto-managed group of primary users for Autopatch Test Group devices"
     }
 )
 
@@ -36,10 +41,11 @@ function Write-Log {
     param([string]$Message)
     $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
     $entry = "$timestamp $Message"
-    Write-Output $entry
+    Write-Host $entry
     try {
         Add-Content -Path $logPath -Value $entry
-    } catch {
+    }
+    catch {
         # If unable to write to file, just continue
     }
 }
@@ -73,7 +79,8 @@ function Sync-GroupMembership {
             if ($item -is [array]) {
                 # Handle nested array from comma operator return
                 $flattenedUserIds += $item
-            } else {
+            }
+            else {
                 $flattenedUserIds += $item
             }
         }
@@ -88,7 +95,8 @@ function Sync-GroupMembership {
     foreach ($userId in $flattenedUserIds) {
         if ($userId -and $userId -is [string] -and $userId.Trim() -match '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$') {
             $validUserIds += $userId.Trim()
-        } else {
+        }
+        else {
             $invalidCount++
             Write-Log "DEBUG: Invalid user ID filtered: '$userId' (Type: $($userId.GetType().Name))"
         }
@@ -108,11 +116,12 @@ function Sync-GroupMembership {
     do {
         try {
             # Use a fresh query each time to avoid caching issues
-            $currentMembers = Get-MgGroupMember -GroupId $GroupId -All -Property "Id" | Where-Object { $_.'@odata.type' -eq "#microsoft.graph.user" }
+            $currentMembers = Get-MgGroupMember -GroupId $GroupId -All -Property "Id"
             $currentMemberIds = @($currentMembers.Id | Where-Object { $_ } | ForEach-Object { $_.ToString() })
             Write-Log "Group '$GroupName' currently has $($currentMemberIds.Count) members (attempt $($retryCount + 1))"
             break
-        } catch {
+        }
+        catch {
             $retryCount++
             Write-Log "WARNING: Failed to get current group members for '$GroupName' (attempt $retryCount): $_"
             if ($retryCount -ge $maxRetries) {
@@ -143,27 +152,45 @@ function Sync-GroupMembership {
     # Add new users with individual existence check due to consistency issues
     $addedCount = 0
     $skippedCount = 0
+    $errorCount = 0
     
     foreach ($userId in $usersToAdd) {
-        try {
-            # Pre-check if user already exists (handles consistency issues)
-            $existingMember = Get-MgGroupMember -GroupId $GroupId -All | Where-Object { $_.Id -eq $userId }
-            
-            if (-not $existingMember) {
-                New-MgGroupMember -GroupId $GroupId -DirectoryObjectId $userId
+        $maxAttempts = 3
+        $currentAttempt = 0
+        $success = $false
+        
+        while (-not $success -and $currentAttempt -lt $maxAttempts) {
+            $currentAttempt++
+            try {
+                # Use direct addition with proper exception handling instead of pre-check
+                New-MgGroupMember -GroupId $GroupId -DirectoryObjectId $userId -ErrorAction Stop
                 $addedCount++
-                Write-Log "Group '$GroupName' - Successfully added user: $userId"
-                Start-Sleep -Milliseconds 200  # Increased delay for consistency
-            } else {
-                $skippedCount++
-                Write-Log "Group '$GroupName' - User already exists (pre-check): $userId"
+                $success = $true
+                Write-Log "Group '$GroupName' - Successfully added user: $userId (Attempt $currentAttempt)"
+                Start-Sleep -Milliseconds 250  # Increased delay for consistency
             }
-        } catch {
-            if ($_.Exception.Message -like "*already exist*" -or $_.Exception.Message -like "*already a member*") {
-                $skippedCount++
-                Write-Log "Group '$GroupName' - User already exists (API response): $userId"
-            } else {
-                Write-Log "ERROR: Group '$GroupName' - Failed to add user $userId : $_"
+            catch {
+                # Handle specific exceptions for already existing members
+                if ($_.Exception.Message -like "*already exist*" -or 
+                    $_.Exception.Message -like "*already a member*" -or
+                    $_.Exception.Message -like "*DirectoryValueExistsException*" -or
+                    $_.Exception.Message -like "*Value for property exists*") {
+                    
+                    $skippedCount++
+                    $success = $true  # Consider this a success since the member exists
+                    Write-Log "Group '$GroupName' - User already exists (API response): $userId"
+                }
+                elseif ($currentAttempt -lt $maxAttempts) {
+                    # Potentially transient error, retry with exponential backoff
+                    $delay = 500 * [Math]::Pow(2, $currentAttempt - 1)  # 500ms, 1000ms, 2000ms
+                    Write-Log "WARNING: Group '$GroupName' - Temporary error adding user $userId (Attempt $currentAttempt/$maxAttempts): $_. Retrying in $delay ms."
+                    Start-Sleep -Milliseconds $delay
+                }
+                else {
+                    # All attempts failed
+                    $errorCount++
+                    Write-Log "ERROR: Group '$GroupName' - Failed to add user $userId after $maxAttempts attempts: $_"
+                }
             }
         }
     }
@@ -176,7 +203,8 @@ function Sync-GroupMembership {
             $removedCount++
             Write-Log "Group '$GroupName' - Successfully removed user: $userId"
             Start-Sleep -Milliseconds 200
-        } catch {
+        }
+        catch {
             Write-Log "ERROR: Group '$GroupName' - Failed to remove user $userId : $_"
         }
     }
@@ -188,7 +216,8 @@ function Sync-GroupMembership {
     try {
         $finalMembers = Get-MgGroupMember -GroupId $GroupId -All | Where-Object { $_.'@odata.type' -eq "#microsoft.graph.user" }
         Write-Log "Group '$GroupName' - Final member count: $($finalMembers.Count)"
-    } catch {
+    }
+    catch {
         Write-Log "WARNING: Could not verify final member count for group '$GroupName'"
     }
 }
@@ -214,7 +243,7 @@ function Get-PrimaryUsersForDevices {
         Write-Log "Processing device: $displayName (ObjectId: $deviceObjectId, DeviceId: $deviceId)"
         
         try {
-            $intuneDevice = Get-MgDeviceManagementManagedDevice -Filter "azureADDeviceId eq '$deviceId'" -Property id,userId
+            $intuneDevice = Get-MgDeviceManagementManagedDevice -Filter "azureADDeviceId eq '$deviceId'" -Property id, userId
             if ($intuneDevice -and $intuneDevice.userId) {
                 # Validate that userId is a proper GUID before adding
                 if ($intuneDevice.userId -match '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$') {
@@ -222,13 +251,16 @@ function Get-PrimaryUsersForDevices {
                     $userIdString = $intuneDevice.userId.ToString()
                     $primaryUserIds[$userIdString] = $true
                     Write-Log "Device $displayName : Found primary user $userIdString"
-                } else {
+                }
+                else {
                     Write-Log "WARNING: Device $displayName has invalid userId format: $($intuneDevice.userId)"
                 }
-            } else {
+            }
+            else {
                 Write-Log "Device $displayName : No primary user set"
             }
-        } catch {
+        }
+        catch {
             Write-Log "WARNING: Device $displayName not found in Intune or error occurred: $_"
         }
     }
@@ -240,7 +272,7 @@ function Get-PrimaryUsersForDevices {
     # Debug: Log sample user IDs to verify format
     if ($userIds.Count -gt 0) {
         $sampleCount = [Math]::Min(3, $userIds.Count)
-        $sampleIds = $userIds[0..($sampleCount-1)]
+        $sampleIds = $userIds[0..($sampleCount - 1)]
         Write-Log "Sample user IDs: $($sampleIds -join ', ')"
     }
     
@@ -255,7 +287,7 @@ foreach ($config in $deviceGroupConfigs) {
     $deviceGroupName = $config.DeviceGroupName
     $userGroupName = $config.UserGroupName
     $userGroupDescription = $config.UserGroupDescription
-    
+    $uniqueUserIds = @()
     Write-Log "=== Processing Device Group: $deviceGroupName ==="
     
     # STEP 1: Get device group
@@ -269,19 +301,31 @@ foreach ($config in $deviceGroupConfigs) {
     
     # STEP 2: Get devices in the device group (including nested groups)
     $devices = Get-AllDevicesFromGroup -GroupId $deviceGroup.Id
-    if (-not $devices) {
-        Write-Log "No devices found in group: $deviceGroupName (including nested groups) - skipping"
-        continue
+    if (-not $devices -or $devices.Count -eq 0) {
+        Write-Log "No devices found in group: $deviceGroupName (including nested groups)"
+        
+        # Proceed to clear the user group
+        $uniqueUserIds = @()  # Empty list of user IDs
     }
-    
-    Write-Log "Found $($devices.Count) devices in group: $deviceGroupName"
-    
-    # STEP 3: Get primary users from Intune managedDevices
-    $uniqueUserIds = Get-PrimaryUsersForDevices -Devices $devices
-    
-    if (-not $uniqueUserIds) {
-        Write-Log "No primary users found for devices in group: $deviceGroupName - skipping"
-        continue
+    else {
+        Write-Log "Found $($devices.Count) devices in group: $deviceGroupName"
+        
+        # STEP 3: Get primary users from Intune managedDevices
+        $uniqueUserIds = Get-PrimaryUsersForDevices -Devices $devices
+
+        # Important fix: Even if no primary users found, we should proceed with an empty array
+        # to properly clear the user group instead of skipping
+        if ($null -eq $uniqueUserIds) {
+            # Only skip if truly null (function error), not if empty array
+            Write-Log "ERROR: Failed to retrieve primary users for devices in group: $deviceGroupName - skipping"
+            continue
+        }
+
+        # Empty array is valid - will clear the group
+        if ($uniqueUserIds.Count -eq 0) {
+            Write-Log "No primary users found for devices in group: $deviceGroupName - will clear user group"
+            # Continue processing to clear the group (don't skip)
+        }
     }
     
     # STEP 4: Create or get the user group
@@ -289,17 +333,19 @@ foreach ($config in $deviceGroupConfigs) {
     if (-not $userGroup) {
         try {
             $userGroup = New-MgGroup -DisplayName $userGroupName `
-                                   -MailEnabled:$false `
-                                   -MailNickname ("primaryusers" + ([guid]::NewGuid().ToString("N").Substring(0, 6))) `
-                                   -SecurityEnabled:$true `
-                                   -GroupTypes @() `
-                                   -Description $userGroupDescription
+                -MailEnabled:$false `
+                -MailNickname ("primaryusers" + ([guid]::NewGuid().ToString("N").Substring(0, 6))) `
+                -SecurityEnabled:$true `
+                -GroupTypes @() `
+                -Description $userGroupDescription
             Write-Log "Created user group: $($userGroup.DisplayName)"
-        } catch {
+        }
+        catch {
             Write-Log "ERROR: Failed to create user group '$userGroupName': $_"
             continue
         }
-    } else {
+    }
+    else {
         Write-Log "Found existing user group: $($userGroup.DisplayName)"
     }
     
