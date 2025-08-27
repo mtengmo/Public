@@ -8,3 +8,5 @@ wigle.net #wifi
 fullhunt.io #attack surface
 vulners.com #vulnerabilities
 viz.greynoice.io #three intelx
+https://talosintelligence.com/ #vulnerabilities
+https://tria.ge/ #malware analysis
